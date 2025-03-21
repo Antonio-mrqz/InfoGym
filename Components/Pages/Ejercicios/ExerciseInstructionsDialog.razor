@@ -1,0 +1,81 @@
+﻿@namespace MudBlazorWebApp1.Pages
+@using MudBlazorWebApp1.Models
+@using MudBlazor
+
+<MudDialog Style="min-width: 500px; max-width: 800px;">
+    <MudDialogTitle>
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" />
+            <MudText Typo="Typo.h6">@Exercise.Name</MudText>
+        </div>
+    </MudDialogTitle>
+
+    <MudDialogContent>
+        <MudGrid>
+            <!-- Imagen del ejercicio -->
+            <MudItem xs="12" sm="6" md="5">
+                <MudCard Elevation="0" Class="rounded-lg overflow-hidden">
+                    <MudCardMedia Image="@Exercise.GifUrl" Height="300" />
+                </MudCard>
+            </MudItem>
+            
+            <!-- Detalles del ejercicio -->
+            <MudItem xs="12" sm="6" md="7">
+                <!-- Información básica -->
+                <MudPaper Elevation="0" Class="pa-3 mb-3 rounded-lg">
+                    <MudText Typo="Typo.subtitle1"><strong>Información</strong></MudText>
+                    <MudList T="string">
+                        <MudListItem Text="Parte del cuerpo" Icon="@Icons.Material.Outlined.FitnessCenter" SecondaryText="@Exercise.BodyPart" />
+                        <MudListItem Text="Músculo objetivo" Icon="@Icons.Material.Outlined.SportsMartialArts" SecondaryText="@Exercise.Target" />
+                        <MudListItem Text="Equipo" Icon="@Icons.Material.Outlined.Handyman" SecondaryText="@Exercise.Equipment" />
+                    </MudList>
+                </MudPaper>
+                
+                <!-- Músculos secundarios si hay alguno -->
+                @if (Exercise.SecondaryMuscles != null && Exercise.SecondaryMuscles.Any())
+                {
+                    <MudPaper Elevation="0" Class="pa-3 mb-3 rounded-lg">
+                        <MudText Typo="Typo.subtitle1"><strong>Músculos secundarios</strong></MudText>
+                        <MudList T="string">
+                            @foreach (var muscle in Exercise.SecondaryMuscles)
+                            {
+                                <MudListItem Text="@muscle" Icon="@Icons.Material.Filled.FitnessCenter" IconColor="Color.Info" />
+                            }
+                        </MudList>
+                    </MudPaper>
+                }
+            </MudItem>
+        </MudGrid>
+        
+        <!-- Instrucciones -->
+        <MudDivider Class="my-3" />
+        <MudText Typo="Typo.h6">Instrucciones</MudText>
+        @if (Exercise.Instructions != null && Exercise.Instructions.Any())
+        {
+            <MudList T="string">
+                @foreach (var instruction in Exercise.Instructions)
+                {
+                    <MudListItem Text="@instruction" Icon="@Icons.Material.Filled.ChevronRight" />
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">No hay instrucciones disponibles.</MudAlert>
+        }
+    </MudDialogContent>
+
+    <MudDialogActions>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Close">Cerrar</MudButton>
+    </MudDialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+    [Parameter] public Exercise Exercise { get; set; } = new();
+
+    private void Close()
+    {
+        MudDialog?.Close();
+    }
+}

@@ -7,7 +7,7 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">InfoGym</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
@@ -66,31 +66,19 @@
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
-        Background = "#1a1a27",
-        BackgroundGray = "#151521",
-        AppbarText = "#92929f",
-        AppbarBackground = "rgba(26,26,39,0.8)",
-        DrawerBackground = "#1a1a27",
-        ActionDefault = "#74718e",
-        ActionDisabled = "#9999994d",
-        ActionDisabledBackground = "#605f6d4d",
-        TextPrimary = "#b2b0bf",
-        TextSecondary = "#92929f",
-        TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
-        DrawerText = "#92929f",
-        GrayLight = "#2a2833",
-        GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
-        LinesDefault = "#33323e",
-        TableLines = "#33323e",
-        Divider = "#292838",
-        OverlayLight = "#1e1e2d80",
+            Primary = "#D90429",           // Rojo intenso para elementos principales
+            Surface = "#222222",           // Superficie de tarjetas ligeramente más clara que el fondo
+            Background = "#121212",        // Fondo (Negro profundo)
+            AppbarText = "#FFFFFF",        // Texto en la barra de navegación
+            AppbarBackground = "#D90429",  // Fondo de la barra de aplicación
+            DrawerBackground = "#1A1A1A",  // Fondo del drawer
+            ActionDefault = "#D90429",
+            TextPrimary = "#FFFFFF",       // Títulos (Blanco puro)
+            TextSecondary = "#B0B0B0",     // Subtítulos y textos secundarios
+            DrawerIcon = "#D90429",        // Iconos del drawer en rojo para destacar
+            DrawerText = "#FFFFFF",        // Texto del drawer en blanco
+            TableLines = "#2A2A2A",        // Líneas de tabla sutiles
+            Divider = "#2A2A2A",           // Divisores en gris oscuro
     };
 
     public string DarkLightModeButtonIcon => _isDarkMode switch

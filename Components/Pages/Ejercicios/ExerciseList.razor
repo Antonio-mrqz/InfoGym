@@ -1,8 +1,25 @@
 ﻿@page "/exercises"
 @using MudBlazorWebApp1.Models
 @using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Pages
 @inject IExerciseService ExerciseService
+@inject IDialogService DialogService
 
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        background-color: #222222;
+        border: 1px solid #222222; /* Borde del mismo color que el fondo */
+    }
+
+        .hover-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(217, 4, 41, 0.3);
+            border: 1px solid rgba(217, 4, 41, 0.5); /* Borde rojo en hover */
+        }
+</style>
 
 @* TITULO *@
 <MudContainer Class="d-flex justify-center align-items-center mt-4">
@@ -12,7 +29,7 @@
 
 @* SEPARADOR *@
 <MudContainer Class="mt-2 mb-4">
-    <MudDivider Style="height: 3px; background-color: slateblue;" />
+    <MudDivider Style="height: 3px; background-color: #D90429;" />
 </MudContainer>
 
 
@@ -42,12 +59,11 @@
             @foreach (var exercise in pagedExercises)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Style="height: 100%;">
+                    <MudCard Style="height: 100%;" Class="hover-card">
                         <MudCardMedia Image="@exercise.GifUrl" Height="200" />
                         <MudCardContent>
                             <MudText Typo="Typo.h5">@exercise.Name</MudText>
                             <MudText Typo="Typo.body2">Parte del cuerpo: @exercise.BodyPart</MudText>
-                            <MudText Typo="Typo.body2">Equipo: @exercise.Equipment</MudText>
                             <MudText Typo="Typo.body2">Músculo objetivo: @exercise.Target</MudText>
                         </MudCardContent>
                         <MudCardActions>
@@ -66,20 +82,6 @@
                    SelectedChanged="ChangePage"
                    Class="mt-4 d-flex justify-center" />
 
-    @if (selectedExercise != null)
-    {
-        <MudDialog @bind-IsVisible="dialogVisible">
-            <TitleContent>
-                <MudText Typo="Typo.h6">@selectedExercise.Name</MudText>
-            </TitleContent>
-            <DialogContent>
-                <MudText>@selectedExercise.Instructions</MudText>
-            </DialogContent>
-            <DialogActions>
-                <MudButton Color="Color.Primary" OnClick="() => dialogVisible = false">Cerrar</MudButton>
-            </DialogActions>
-        </MudDialog>
-    }
 </MudContainer>
 
 @code {
@@ -131,8 +133,8 @@
 
     private void ShowInstructions(Exercise exercise)
     {
-        selectedExercise = exercise;
-        dialogVisible = true;
+        var parameters = new DialogParameters { ["Exercise"] = exercise };
+        DialogService.ShowAsync<ExerciseInstructionsDialog>("Instrucciones", parameters);
     }
 
     private void ChangePage(int page)
