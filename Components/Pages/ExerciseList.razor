@@ -1,0 +1,154 @@
+﻿@page "/exercises"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@inject IExerciseService ExerciseService
+
+
+@* TITULO *@
+<MudContainer Class="d-flex justify-center align-items-center mt-4">
+    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 4rem;" Class="mr-2" />
+    <MudText Typo="Typo.h2">Ejercicios</MudText>
+</MudContainer>
+
+@* SEPARADOR *@
+<MudContainer Class="mt-2 mb-4">
+    <MudDivider Style="height: 3px; background-color: slateblue;" />
+</MudContainer>
+
+
+@* CONTENIDO *@
+<MudContainer Class="mt-16">
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+    }
+
+    <MudGrid>
+        @if (isLoading)
+        {
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+            </MudItem>
+        }
+        else if (pagedExercises == null || !pagedExercises.Any())
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No se encontraron ejercicios. Por favor verifica la conexión a la API.</MudAlert>
+            </MudItem>
+        }
+        else
+        {
+            @foreach (var exercise in pagedExercises)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Style="height: 100%;">
+                        <MudCardMedia Image="@exercise.GifUrl" Height="200" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@exercise.Name</MudText>
+                            <MudText Typo="Typo.body2">Parte del cuerpo: @exercise.BodyPart</MudText>
+                            <MudText Typo="Typo.body2">Equipo: @exercise.Equipment</MudText>
+                            <MudText Typo="Typo.body2">Músculo objetivo: @exercise.Target</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ShowInstructions(exercise))">Ver instrucciones</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    <!-- Paginación -->
+    <MudPagination ShowFirstButton="true" ShowLastButton="true"
+                   Count="totalPages"
+                   Selected="@currentPage"
+                   SelectedChanged="ChangePage"
+                   Class="mt-4 d-flex justify-center" />
+
+    @if (selectedExercise != null)
+    {
+        <MudDialog @bind-IsVisible="dialogVisible">
+            <TitleContent>
+                <MudText Typo="Typo.h6">@selectedExercise.Name</MudText>
+            </TitleContent>
+            <DialogContent>
+                <MudText>@selectedExercise.Instructions</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton Color="Color.Primary" OnClick="() => dialogVisible = false">Cerrar</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+</MudContainer>
+
+@code {
+    private List<Exercise>? exercises;
+    private List<Exercise>? pagedExercises;
+    private Exercise? selectedExercise;
+    private bool dialogVisible;
+    private bool isLoading = true;
+    private string errorMessage = "";
+
+    private int currentPage = 1;
+    private int itemsPerPage = 8; // Número de ejercicios por página
+    private int totalPages => (exercises?.Count ?? 0 + itemsPerPage - 1) / itemsPerPage;
+
+    [Inject] private NavigationManager Navigation { get; set; }
+
+    // Funcion para poder ir a la página anterior
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    // Funcion que carga los ejercicios de la API al cargarse la página
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            exercises = await ExerciseService.GetExercisesAsync();
+
+            if (exercises == null || !exercises.Any())
+            {
+                errorMessage = "No se pudieron cargar los ejercicios. Verifica la conexión a la API.";
+            }
+            else
+            {
+                UpdatePagedExercises();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar los ejercicios: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowInstructions(Exercise exercise)
+    {
+        selectedExercise = exercise;
+        dialogVisible = true;
+    }
+
+    private void ChangePage(int page)
+    {
+        currentPage = page;
+        UpdatePagedExercises();
+    }
+
+    private void UpdatePagedExercises()
+    {
+        if (exercises == null) return;
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        pagedExercises = exercises.Skip(startIndex).Take(itemsPerPage).ToList();
+    }
+
+
+
+    
+}
