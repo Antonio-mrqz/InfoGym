@@ -1,2 +1,0 @@
-C:\Users\antonio.barrios\source\repos\MudBlazorWebApp1\wwwroot\favicon.ico
-wwwroot\favicon.ico
