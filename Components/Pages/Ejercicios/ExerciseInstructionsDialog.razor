@@ -2,80 +2,218 @@
 @using MudBlazorWebApp1.Models
 @using MudBlazor
 
-<MudDialog Style="min-width: 500px; max-width: 800px;">
-    <MudDialogTitle>
-        <div class="d-flex align-center">
-            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" />
-            <MudText Typo="Typo.h6">@Exercise.Name</MudText>
-        </div>
-    </MudDialogTitle>
+<style>
+    .instruction-list .mud-list-item {
+        align-items: start;
+        padding: 4px 0;
+    }
 
-    <MudDialogContent>
-        <MudGrid>
-            <!-- Imagen del ejercicio -->
-            <MudItem xs="12" sm="6" md="5">
-                <MudCard Elevation="0" Class="rounded-lg overflow-hidden">
-                    <MudCardMedia Image="@Exercise.GifUrl" Height="300" />
+    .instruction-number {
+        color: var(--mud-palette-primary);
+        font-weight: 500;
+        min-width: 28px;
+    }
+
+    .exercise-dialog .mud-dialog-content {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .form-container {
+        border-top: 1px solid var(--mud-palette-divider);
+        margin-top: 16px;
+        padding-top: 16px;
+    }
+</style>
+
+<MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true" Class="exercise-dialog">
+    <TitleContent>
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" Color="Color.Primary"/>
+            <MudText Typo="Typo.h4" Color="Color.Primary">@Exercise?.Name</MudText>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        @if (showSuccessMessage)
+        {
+            <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Dense="true" Class="mb-3">
+                Ejercicio "@Exercise?.Name" agregado a "@selectedDay" correctamente.
+            </MudAlert>
+        }  
+        <MudDivider Class="my-4" Color="Color.Primary"/>
+
+        <MudGrid Spacing="4" Justify="Justify.FlexStart">
+            <!-- Imagen -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="8" Class="h-100 rounded-lg">
+                    <MudCardMedia Image="@Exercise?.GifUrl" 
+                                  Class="rounded-lg" 
+                                  Height="300" 
+                                  Style="object-fit: cover;"/>
+
+                    <!-- Formulario debajo del GIF -->
+                    <MudCardContent Class="form-container">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.PlaylistAdd" Class="mr-2"/>
+                            Agregar a Rutina
+                        </MudText>
+
+                        <MudSelect T="string" 
+                                   Label="Seleccionar Día" 
+                                   HelperText="Elige a qué día quieres agregar este ejercicio"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   @bind-Value="selectedDay">
+                            @foreach (var routine in availableDays)
+                            {
+                                <MudSelectItem Value="@routine">@routine</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <div class="d-flex justify-end mt-4">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       StartIcon="@Icons.Material.Filled.Save"
+                                       OnClick="SaveToRoutine"
+                                       Disabled="@string.IsNullOrEmpty(selectedDay)"
+                                       Class="rounded-pill">
+                                Guardar en Rutina
+                            </MudButton>
+                        </div>
+                    </MudCardContent>
                 </MudCard>
             </MudItem>
-            
-            <!-- Detalles del ejercicio -->
-            <MudItem xs="12" sm="6" md="7">
-                <!-- Información básica -->
-                <MudPaper Elevation="0" Class="pa-3 mb-3 rounded-lg">
-                    <MudText Typo="Typo.subtitle1"><strong>Información</strong></MudText>
-                    <MudList T="string">
-                        <MudListItem Text="Parte del cuerpo" Icon="@Icons.Material.Outlined.FitnessCenter" SecondaryText="@Exercise.BodyPart" />
-                        <MudListItem Text="Músculo objetivo" Icon="@Icons.Material.Outlined.SportsMartialArts" SecondaryText="@Exercise.Target" />
-                        <MudListItem Text="Equipo" Icon="@Icons.Material.Outlined.Handyman" SecondaryText="@Exercise.Equipment" />
-                    </MudList>
-                </MudPaper>
-                
-                <!-- Músculos secundarios si hay alguno -->
-                @if (Exercise.SecondaryMuscles != null && Exercise.SecondaryMuscles.Any())
-                {
-                    <MudPaper Elevation="0" Class="pa-3 mb-3 rounded-lg">
-                        <MudText Typo="Typo.subtitle1"><strong>Músculos secundarios</strong></MudText>
-                        <MudList T="string">
-                            @foreach (var muscle in Exercise.SecondaryMuscles)
-                            {
-                                <MudListItem Text="@muscle" Icon="@Icons.Material.Filled.FitnessCenter" IconColor="Color.Info" />
-                            }
-                        </MudList>
+
+            <!-- Detalles -->
+            <MudItem xs="12" md="6" Class="pl-md-4 pl-0 mt-4 mt-md-0">
+                <MudStack Spacing="4">
+                    <!-- Detalles Principales -->
+                    <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="background-color: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2"/>
+                            Detalles del Ejercicio
+                        </MudText>
+
+                        <MudStack Spacing="3">
+                            <MudItem xs="12" Class="d-flex align-center">
+                                <MudIcon Icon="@Icons.Material.Filled.Accessibility" Class="mr-2" Size="Size.Small" Color="Color.Primary"/>
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Parte del cuerpo</MudText>
+                                    <MudText Typo="Typo.body1" Class="font-weight-medium">@Exercise?.BodyPart</MudText>
+                                </div>
+                            </MudItem>
+
+                            <MudItem xs="12" Class="d-flex align-center">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationSearching" Class="mr-2" Size="Size.Small" Color="Color.Primary"/>
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Músculo objetivo</MudText>
+                                    <MudText Typo="Typo.body1" Class="font-weight-medium">@Exercise?.Target</MudText>
+                                </div>
+                            </MudItem>
+
+                            <MudItem xs="12" Class="d-flex align-center">
+                                <MudIcon Icon="@Icons.Material.Filled.Construction" Class="mr-2" Size="Size.Small" Color="Color.Primary"/>
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Equipo</MudText>
+                                    <MudText Typo="Typo.body1" Class="font-weight-medium">@Exercise?.Equipment</MudText>
+                                </div>
+                            </MudItem>
+                        </MudStack>
                     </MudPaper>
-                }
+
+                    <!-- Sección de Instrucciones -->
+                    @if (Exercise?.Instructions != null && Exercise.Instructions.Any())
+                    {
+                        <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="background-color: var(--mud-palette-surface);">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.ListAlt" Class="mr-2"/>
+                                Instrucciones
+                            </MudText>
+
+                            <MudList Dense="true" Class="instruction-list" T="string"> 
+                                @for (int i = 0; i < Exercise.Instructions.Count; i++)
+                                {
+                                    var index = i; // Crear una variable local para evitar problemas de captura
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                                                     Size="Size.Small" 
+                                                     Class="mr-2" 
+                                                     Color="Color.Primary" />
+                                            <span>@($"{index + 1}. {Exercise.Instructions[index]}")</span>
+                                        </MudText>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-3 mb-3">
+                            No hay instrucciones disponibles para este ejercicio.
+                        </MudAlert>
+                    }
+                </MudStack>
             </MudItem>
         </MudGrid>
-        
-        <!-- Instrucciones -->
-        <MudDivider Class="my-3" />
-        <MudText Typo="Typo.h6">Instrucciones</MudText>
-        @if (Exercise.Instructions != null && Exercise.Instructions.Any())
-        {
-            <MudList T="string">
-                @foreach (var instruction in Exercise.Instructions)
-                {
-                    <MudListItem Text="@instruction" Icon="@Icons.Material.Filled.ChevronRight" />
-                }
-            </MudList>
-        }
-        else
-        {
-            <MudAlert Severity="Severity.Info">No hay instrucciones disponibles.</MudAlert>
-        }
-    </MudDialogContent>
+    </DialogContent>
 
-    <MudDialogActions>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Close">Cerrar</MudButton>
-    </MudDialogActions>
+    <DialogActions>
+        <div Class="px-4 pb-4">
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       EndIcon="@Icons.Material.Filled.Close"
+                       OnClick="Close"
+                       Class="rounded-pill"
+                       FullWidth="true"
+                       FullWidthMd="false">
+                Cerrar
+            </MudButton>
+        </div>
+    </DialogActions>
+
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
-    [Parameter] public Exercise Exercise { get; set; } = new();
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
-    private void Close()
+    [Parameter]
+    public Exercise Exercise { get; set; }
+
+    private bool showSuccessMessage = false;
+
+    // Dias de la semana
+    private List<string> availableDays = new List<string>
     {
-        MudDialog?.Close();
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes"
+    };
+
+    // Variable para almacenar el dia seleccionado
+    private string selectedDay = string.Empty;
+
+    void Close() => MudDialog.Close();
+
+    // Método para guardar el ejercicio en el dia seleccionado
+    private async Task SaveToRoutine()
+    {
+        if (!string.IsNullOrEmpty(selectedDay) && Exercise != null)
+        {
+            showSuccessMessage = true;
+            StateHasChanged();
+
+
+            await Task.Delay(3000);
+
+            await InvokeAsync(() =>
+            {
+                showSuccessMessage = false;
+                MudDialog.Close();
+            });
+        }
     }
 }

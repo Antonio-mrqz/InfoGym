@@ -7,18 +7,22 @@
 
 <style>
     .hover-card {
-        transition: all 0.3s ease;
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        background-color: #222222;
-        border: 1px solid #222222; /* Borde del mismo color que el fondo */
+    transition: all 0.3s ease;
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    background-color: #222222;
+    border: 1px solid #222222; /* Borde del mismo color que el fondo */
     }
 
-        .hover-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 20px rgba(217, 4, 41, 0.3);
-            border: 1px solid rgba(217, 4, 41, 0.5); /* Borde rojo en hover */
-        }
+    .hover-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(217, 4, 41, 0.3);
+    border: 1px solid rgba(217, 4, 41, 0.5); /* Borde rojo en hover */
+    }
+
+    .fondo-difuminado {
+    backdrop-filter: blur(10px);
+    }
 </style>
 
 @* TITULO *@
@@ -67,20 +71,27 @@
                             <MudText Typo="Typo.body2">Músculo objetivo: @exercise.Target</MudText>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ShowInstructions(exercise))">Ver instrucciones</MudButton>
+                            <MudButton Variant="Variant.Text"
+                            Color="Color.Primary"
+                            OnClick="() => OpenExerciseDialog(exercise)">
+                                Ver instrucciones
+                            </MudButton>
                         </MudCardActions>
                     </MudCard>
                 </MudItem>
             }
+
         }
     </MudGrid>
-
     <!-- Paginación -->
-    <MudPagination ShowFirstButton="true" ShowLastButton="true"
-                   Count="totalPages"
-                   Selected="@currentPage"
-                   SelectedChanged="ChangePage"
-                   Class="mt-4 d-flex justify-center" />
+    @if (!isLoading)
+    {
+        <MudPagination ShowFirstButton="true" ShowLastButton="true"
+                       Count="totalPages"
+                       Selected="@currentPage"
+                       SelectedChanged="ChangePage"
+                       Class="mt-4 d-flex justify-center" />
+    }
 
 </MudContainer>
 
@@ -131,12 +142,6 @@
         }
     }
 
-    private void ShowInstructions(Exercise exercise)
-    {
-        var parameters = new DialogParameters { ["Exercise"] = exercise };
-        DialogService.ShowAsync<ExerciseInstructionsDialog>("Instrucciones", parameters);
-    }
-
     private void ChangePage(int page)
     {
         currentPage = page;
@@ -149,8 +154,20 @@
         int startIndex = (currentPage - 1) * itemsPerPage;
         pagedExercises = exercises.Skip(startIndex).Take(itemsPerPage).ToList();
     }
+    private async Task OpenExerciseDialog(Exercise exercise)
+    {
+        var parameters = new DialogParameters<ExerciseInstructionsDialog>
+        {
+            { x => x.Exercise, exercise }
+        };
 
+        var options = new DialogOptions
+            {
+                FullWidth = true,
+                MaxWidth = MaxWidth.Medium,
+                BackgroundClass = "fondo-difuminado"
+            };
 
-
-    
+        DialogService.Show<ExerciseInstructionsDialog>("Instrucciones del ejercicio", parameters, options);
+    }
 }
