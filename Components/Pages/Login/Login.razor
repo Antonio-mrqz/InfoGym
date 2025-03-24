@@ -1,0 +1,60 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<MudPaper Elevation="8" Class="pa-6 mx-auto mt-10" MaxWidth="400px">
+    <MudText Typo="Typo.h5" Class="mb-4 text-center">Iniciar Sesión</MudText>
+
+    <MudForm Model="@loginModel" IsValidChanged="@(isValid => isFormValid = isValid)">
+        <MudTextField Label="Correo Electrónico"
+                      For="@(() => loginModel.Email)"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      Type="email"
+                      Immediate="true" />
+
+        <MudTextField Label="Contraseña"
+                      For="@(() => loginModel.Password)"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      Type="password"
+                      Immediate="true" />
+
+        <MudButton OnClick="LoginSim"
+                   Disabled="!isFormValid"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="mt-4 w-full">
+            Ingresar
+        </MudButton>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isFormValid = false;
+
+    private void LoginSim()
+    {
+        // Simulación de autenticación
+        if (loginModel.Email == "admin@example.com" && loginModel.Password == "123456")
+        {
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            Console.WriteLine("Credenciales incorrectas");
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "El correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "Correo inválido")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        [MinLength(6, ErrorMessage = "Debe tener al menos 6 caracteres")]
+        public string Password { get; set; }
+    }
+}
