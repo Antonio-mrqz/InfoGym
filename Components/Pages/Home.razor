@@ -1,59 +1,113 @@
 ﻿@page "/"
+@inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h2" Align="Align.Center" Class="mb-4" Color="Color.Primary">Bienvenido a InfoGym</MudText>
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Tu guía completa de ejercicios y rutinas para el gimnasio</MudText>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
+        <MudGrid Justify="Justify.Center" Class="my-6">
+            <MudItem xs="12" sm="10" md="8">
+                <MudCarousel Class="mud-width-full" Style="height:400px;" ShowArrows="true" ShowDelimiters="true" AutoCycle="true" TData="object">
+                    <MudCarouselItem>
+                        <div class="d-flex justify-center" style="height:100%">
+                            <MudImage Src="/images/gym1.png" Alt="Entrenamiento con pesas" ObjectFit="ObjectFit.Cover" Class="rounded-lg" />
+                        </div>
+                        <MudText Align="Align.Center" Class="mt-1">Entrenamiento con pesas</MudText>
+                    </MudCarouselItem>
+                    <MudCarouselItem>
+                        <div class="d-flex justify-center" style="height:100%">
+                            <MudImage Src="/images/gym2.jpg" Alt="Entrenamiento cardiovascular" ObjectFit="ObjectFit.Cover" Class="rounded-lg" />
+                        </div>
+                        <MudText Align="Align.Center" Class="mt-1">Entrenamiento cardiovascular</MudText>
+                    </MudCarouselItem>
+                    <MudCarouselItem>
+                        <div class="d-flex justify-center" style="height:100%">
+                            <MudImage Src="/images/gym3.jpg" Alt="Rutinas personalizadas" ObjectFit="ObjectFit.Cover" Class="rounded-lg" />
+                        </div>
+                        <MudText Align="Align.Center" Class="mt-1">Rutinas personalizadas</MudText>
+                    </MudCarouselItem>
+                </MudCarousel>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-<MudAlert Severity="Severity.Normal">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+    <MudGrid Justify="Justify.Center" Class="my-6">
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="h-100">
+                <MudCardMedia Image="/images/ejercicios.jpg" Height="200" />
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Biblioteca de Ejercicios</MudText>
+                    <MudText Typo="Typo.body2">Explora nuestra extensa colección de ejercicios con instrucciones detalladas y videos demostrativos.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="h-100">
+                <MudCardMedia Image="/images/rutinas.jpg" Height="200" />
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Planificador de Rutinas</MudText>
+                    <MudText Typo="Typo.body2">Organiza tu programa de entrenamiento semanal y realiza un seguimiento de tu progreso.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="h-100">
+                <MudCardMedia Image="/images/chatimg.png" Height="200" />
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">Comunidad</MudText>
+                    <MudText Typo="Typo.body2">Conecta con otros entusiastas del fitness y comparte tus experiencias y logros.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br />
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br />
-    the render modes are defined in App.razor and consequently apply to all child components.<br />
-    In this case, providers are globally set in the MainLayout.<br />
-    <br />
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br />
-    it is necessary to include the <br />
-    <br />
-    &lt;MudPopoverProvider /&gt; <br />
-    &lt;MudDialogProvider /&gt; <br />
-    &lt;MudSnackbarProvider /&gt; <br />
-    <br />
-    components on every interactive page.<br />
-    <br />
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br />
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br />
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
-</MudText>
+    <MudPaper Elevation="3" Class="pa-4 my-4">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">¿Listo para comenzar?</MudText>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" OnClick="@(() => NavigationManager.NavigateTo("/login"))">
+                    <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" /> Iniciar Sesión
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Large" FullWidth="true" OnClick="@(() => NavigationManager.NavigateTo("/register"))">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" /> Registrarse
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 9</MudText>
-<br />
+    <MudDivider Class="my-6" />
 
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 9 Blazor,<br /> you might be pleasantly surprised to learn that each page is prerendered on the server,<br /> regardless of the selected render mode.<br /><br />
-    This means that you'll need to inject all necessary services on the server,<br /> even when opting for the wasm (WebAssembly) render mode.<br /><br />
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br /> especially when it comes to initial page load times.<br /><br />
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="my-4">¿Por qué elegir InfoGym?</MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="pa-4 d-flex flex-column align-center">
+                <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+                <MudText Typo="Typo.h6" Align="Align.Center">Ejercicios Detallados</MudText>
+                <MudText Typo="Typo.body2" Align="Align.Center">Instrucciones paso a paso y consejos profesionales.</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="pa-4 d-flex flex-column align-center">
+                <MudIcon Icon="@Icons.Material.Filled.Timeline" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+                <MudText Typo="Typo.h6" Align="Align.Center">Seguimiento de Progreso</MudText>
+                <MudText Typo="Typo.body2" Align="Align.Center">Visualiza tu evolución y mantente motivado.</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="pa-4 d-flex flex-column align-center">
+                <MudIcon Icon="@Icons.Material.Filled.PersonalVideo" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+                <MudText Typo="Typo.h6" Align="Align.Center">Personalización</MudText>
+                <MudText Typo="Typo.body2" Align="Align.Center">Rutinas adaptadas a tus objetivos y disponibilidad.</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+    <MudDivider Class="my-6" />
+
+    <MudText Align="Align.Center" Typo="Typo.caption" Class="mt-8 mb-4">
+        &copy; 2025 InfoGym - Todos los derechos reservados
+    </MudText>
+</MudContainer>

@@ -1,0 +1,14 @@
+﻿namespace MudBlazorWebApp1.Models
+{
+    public class Usuario
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Apellido1 { get; set; }
+        public string Apellido2 { get; set; }
+        public string Email { get; set; }
+        public int Telefono { get; set; }
+        public int Altura { get; set; }
+        public int Peso { get; set; }
+    }
+}
