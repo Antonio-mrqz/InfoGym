@@ -1,0 +1,115 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<div class="vh-100 d-flex justify-center align-center" style="margin-top: 13%">
+    <MudPaper Elevation="8" Class="pa-6" Style="width: 100%; max-width: 400px;">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">
+            Registro de Usuario
+        </MudText>
+
+        <MudForm Model="@registerModel" IsValidChanged="@(isValid => isFormValid = isValid)">
+            <MudTextField Label="Nombre"
+                          @bind-Value="registerModel.Name"
+                          For="@(() => registerModel.Name)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Immediate="true"
+                          Class="w-100"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person" />
+
+            <MudTextField Label="Correo Electrónico"
+                          @bind-Value="registerModel.Email"
+                          For="@(() => registerModel.Email)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Type="email"
+                          Immediate="true"
+                          Class="w-100 mt-3"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Email" />
+
+            <MudTextField Label="Contraseña"
+                          @bind-Value="registerModel.Password"
+                          For="@(() => registerModel.Password)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Type="password"
+                          Immediate="true"
+                          Class="w-100 mt-3"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+            <MudTextField Label="Confirmar Contraseña"
+                          @bind-Value="registerModel.ConfirmPassword"
+                          For="@(() => registerModel.ConfirmPassword)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Type="password"
+                          Immediate="true"
+                          Class="w-100 mt-3"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+            <MudButton OnClick="RegisterUser"
+                       Disabled="!isFormValid"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Class="mt-4 w-100">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" /> Registrarse
+            </MudButton>
+        </MudForm>
+
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
+            ¿Ya tienes cuenta?
+            <MudLink Href="/login" Color="Color.Primary">Iniciar Sesión</MudLink>
+        </MudText>
+    </MudPaper>
+</div>
+
+
+@code
+{
+    private RegisterModel registerModel = new();
+    private bool isFormValid = false;
+
+    private void RegisterUser()
+    {
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            Snackbar.Add("Las contraseñas no coinciden", Severity.Error);
+            return;
+        }
+
+        // Lógica de registro (esto puede incluir la validación y llamadas al backend)
+        if (!string.IsNullOrWhiteSpace(registerModel.Name) && !string.IsNullOrWhiteSpace(registerModel.Email))
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            Console.WriteLine("Error en el registro");
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio")]
+        [MinLength(2, ErrorMessage = "El nombre debe tener al menos 2 caracteres")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "El correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "Correo inválido")]
+        public string Email { get; set; }
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        [MinLength(8, ErrorMessage = "Debe tener al menos 8 caracteres")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?\:{}|<>]).{8,}$", 
+            ErrorMessage = "La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirmar contraseña es obligatorio")]
+        public string ConfirmPassword { get; set; }
+    }
+}

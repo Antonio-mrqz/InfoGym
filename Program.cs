@@ -1,3 +1,4 @@
+using MudBlazor;
 using MudBlazor.Services;
 using MudBlazorWebApp1.Components;
 using MudBlazorWebApp1.Services;
@@ -5,7 +6,13 @@ using MudBlazorWebApp1.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config => {
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 2000;
+});
 
 // Add services to the container.
 builder.Services.AddHttpClient<IExerciseService, ExerciseService>();
