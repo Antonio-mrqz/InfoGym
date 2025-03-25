@@ -1,4 +1,19 @@
-﻿@inherits LayoutComponentBase
+﻿@using Newtonsoft.Json;
+
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inherits LayoutComponentBase
+
+<style>
+    .avatar-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .avatar-hover:hover {
+            transform: scale(1.2);
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.5);
+        }
+</style>
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -9,17 +24,31 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h4" Class="ml-3">InfoGym</MudText>
         <MudSpacer />
-        <MudLink Color="Color.Inherit"  Class="ml-3" Href="/login">Login</MudLink>
-        <MudLink Color="Color.Inherit"  Class="ml-3" Href="/register">Register</MudLink>
+
+        @if (_usuario == null)
+        {
+            <!-- Si NO hay usuario autenticado, mostrar Login y Register -->
+            <MudLink Color="Color.Inherit" Class="ml-3" Href="/login">Login</MudLink>
+            <MudLink Color="Color.Inherit" Class="ml-3" Href="/register">Register</MudLink>
+        }
+        else
+        {
+            <!-- Si hay usuario autenticado, mostrar Avatar -->
+            <MudAvatar Size="Size.Medium" Color="Color.Dark" Variant="Variant.Filled"
+                       Class="avatar-hover" OnClick="@RedirigirPerfil" Style="cursor: pointer;">
+                @_usuario.LetraNombre
+            </MudAvatar>
+        }
     </MudAppBar>
+
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
+
     <MudMainContent Class="p-0 m-0">
         @Body
     </MudMainContent>
 </MudLayout>
-
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -28,20 +57,39 @@
 </div>
 
 @code {
-    private bool _drawerOpen = true;
+    private bool _drawerOpen = false;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
+    private Usuario? _usuario = null; // Variable para almacenar el usuario autenticado
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        _theme = new MudTheme()
+            {
+                PaletteDark = _darkPalette,
+                LayoutProperties = new LayoutProperties()
+            };
 
-        _theme = new()
+        await CargarUsuario();
+    }
+
+    private async Task CargarUsuario()
+    {
+        try
         {
-            PaletteLight = _lightPalette,
-            PaletteDark = _darkPalette,
-            LayoutProperties = new LayoutProperties()
-        };
+            // Obtener el usuario almacenado en localStorage
+            var userJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "user");
+            if (!string.IsNullOrEmpty(userJson))
+            {
+                _usuario = JsonConvert.DeserializeObject<Usuario>(userJson);
+            }
+        }
+        catch
+        {
+            _usuario = null; // Si hay un error, se asume que no hay usuario autenticado
+        }
+
+        StateHasChanged(); // Forzar actualización de la interfaz
     }
 
     private void DrawerToggle()
@@ -49,43 +97,25 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private void DarkModeToggle()
-    {
-        _isDarkMode = !_isDarkMode;
-    }
-
-    private readonly PaletteLight _lightPalette = new()
-    {
-        Black = "#110e2d",
-        AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
-        DrawerBackground = "#ffffff",
-        GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
-    };
-
     private readonly PaletteDark _darkPalette = new()
     {
-            Primary = "#D90429",           // Rojo intenso para elementos principales
-            Surface = "#222222",           // Superficie de tarjetas ligeramente más clara que el fondo
-            Background = "#121212",        // Fondo (Negro profundo)
-            AppbarText = "#FFFFFF",        // Texto en la barra de navegación
-            AppbarBackground = "#D90429",  // Fondo de la barra de aplicación
-            DrawerBackground = "#1A1A1A",  // Fondo del drawer
+            Primary = "#D90429",
+            Surface = "#222222",
+            Background = "#121212",
+            AppbarText = "#FFFFFF",
+            AppbarBackground = "#D90429",
+            DrawerBackground = "#1A1A1A",
             ActionDefault = "#D90429",
-            TextPrimary = "#FFFFFF",       // Títulos (Blanco puro)
-            TextSecondary = "#B0B0B0",     // Subtítulos y textos secundarios
-            DrawerIcon = "#D90429",        // Iconos del drawer en rojo para destacar
-            DrawerText = "#FFFFFF",        // Texto del drawer en blanco
-            TableLines = "#2A2A2A",        // Líneas de tabla sutiles
-            Divider = "#2A2A2A",           // Divisores en gris oscuro
+            TextPrimary = "#FFFFFF",
+            TextSecondary = "#B0B0B0",
+            DrawerIcon = "#D90429",
+            DrawerText = "#FFFFFF",
+            TableLines = "#2A2A2A",
+            Divider = "#2A2A2A",
     };
 
-    public string DarkLightModeButtonIcon => _isDarkMode switch
+    private void RedirigirPerfil()
     {
-        true => Icons.Material.Rounded.AutoMode,
-        false => Icons.Material.Outlined.DarkMode,
-    };
+        Navigation.NavigateTo("/perfil"); 
+    }
 }
-
-

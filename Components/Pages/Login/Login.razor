@@ -1,6 +1,8 @@
 ﻿@page "/login"
 @using System.ComponentModel.DataAnnotations
+@inject Services.AuthService AuthService
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <div class="vh-100 d-flex justify-center align-center" style="margin-top: 15%">
     <MudPaper Elevation="8" Class="pa-6" Style="width: 100%; max-width: 400px;">
@@ -9,6 +11,7 @@
         </MudText>
         <MudForm Model="@loginModel" IsValidChanged="@(isValid => isFormValid = isValid)">
             <MudTextField Label="Correo Electrónico"
+                          @bind-Value="loginModel.Email"
                           For="@(() => loginModel.Email)"
                           Variant="Variant.Outlined"
                           Required="true"
@@ -18,15 +21,16 @@
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Email" />
             <MudTextField Label="Contraseña"
+                          @bind-Value="loginModel.Password"
                           For="@(() => loginModel.Password)"
                           Variant="Variant.Outlined"
                           Required="true"
-                          Type="password"
+                          InputType="@PasswordInput"
                           Immediate="true"
                           Class="w-100 mt-3"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Lock" />
-            <MudButton OnClick="LoginSim"
+            <MudButton OnClick="LoginUser"
                        Disabled="!isFormValid"
                        Color="Color.Primary"
                        Variant="Variant.Filled"
@@ -44,18 +48,31 @@
 @code {
     private LoginModel loginModel = new();
     private bool isFormValid = false;
+    InputType PasswordInput = InputType.Password;
 
-    private void LoginSim()
+    private async Task LoginUser()
     {
-        if (loginModel.Email == "admin@example.com" && loginModel.Password == "123456")
+        try
         {
-            Navigation.NavigateTo("/dashboard");
+            // Llamar al servicio de autenticación para verificar las credenciales
+            var usuario = await AuthService.Login(loginModel.Email, loginModel.Password);
+
+            if (usuario != null)
+            {
+                // Si el login es exitoso, navegar al dashboard o página principal
+                Snackbar.Add("Inicio de Sesión exitoso. Bienvenido!", Severity.Success);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                // Si las credenciales son incorrectas
+                Snackbar.Add("Credenciales incorrectas, por favor intente nuevamente.", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Aquí podrías agregar una notificación de error más descriptiva
-            // Por ejemplo, usando MudSnackbar o MudAlert
-            Console.WriteLine("Credenciales incorrectas");
+            // Si hay un error en el proceso de login
+            Snackbar.Add($"Error al iniciar sesión: {ex.Message}", Severity.Error);
         }
     }
 
@@ -66,7 +83,7 @@
         public string Email { get; set; }
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
-        [MinLength(6, ErrorMessage = "Debe tener al menos 6 caracteres")]
+        [MinLength(8, ErrorMessage = "Debe tener al menos 8 caracteres")]
         public string Password { get; set; }
     }
 }
