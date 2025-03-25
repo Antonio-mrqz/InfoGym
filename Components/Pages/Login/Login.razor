@@ -2,33 +2,44 @@
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager Navigation
 
-<MudPaper Elevation="8" Class="pa-6 mx-auto mt-10" MaxWidth="400px">
-    <MudText Typo="Typo.h5" Class="mb-4 text-center">Iniciar Sesión</MudText>
-
-    <MudForm Model="@loginModel" IsValidChanged="@(isValid => isFormValid = isValid)">
-        <MudTextField Label="Correo Electrónico"
-                      For="@(() => loginModel.Email)"
-                      Variant="Variant.Outlined"
-                      Required="true"
-                      Type="email"
-                      Immediate="true" />
-
-        <MudTextField Label="Contraseña"
-                      For="@(() => loginModel.Password)"
-                      Variant="Variant.Outlined"
-                      Required="true"
-                      Type="password"
-                      Immediate="true" />
-
-        <MudButton OnClick="LoginSim"
-                   Disabled="!isFormValid"
-                   Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   Class="mt-4 w-full">
-            Ingresar
-        </MudButton>
-    </MudForm>
-</MudPaper>
+<div class="vh-100 d-flex justify-center align-center" style="margin-top: 18%">
+    <MudPaper Elevation="8" Class="pa-6" Style="width: 100%; max-width: 400px;">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">
+            Iniciar Sesión
+        </MudText>
+        <MudForm Model="@loginModel" IsValidChanged="@(isValid => isFormValid = isValid)">
+            <MudTextField Label="Correo Electrónico"
+                          For="@(() => loginModel.Email)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Type="email"
+                          Immediate="true"
+                          Class="w-100"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Email" />
+            <MudTextField Label="Contraseña"
+                          For="@(() => loginModel.Password)"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Type="password"
+                          Immediate="true"
+                          Class="w-100 mt-3"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock" />
+            <MudButton OnClick="LoginSim"
+                       Disabled="!isFormValid"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Class="mt-4 w-100">
+                <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" /> Ingresar
+            </MudButton>
+        </MudForm>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4">
+            ¿No tienes cuenta?
+            <MudLink Href="/register" Color="Color.Primary">Regístrate</MudLink>
+        </MudText>
+    </MudPaper>
+</div>
 
 @code {
     private LoginModel loginModel = new();
@@ -36,13 +47,14 @@
 
     private void LoginSim()
     {
-        // Simulación de autenticación
         if (loginModel.Email == "admin@example.com" && loginModel.Password == "123456")
         {
             Navigation.NavigateTo("/dashboard");
         }
         else
         {
+            // Aquí podrías agregar una notificación de error más descriptiva
+            // Por ejemplo, usando MudSnackbar o MudAlert
             Console.WriteLine("Credenciales incorrectas");
         }
     }

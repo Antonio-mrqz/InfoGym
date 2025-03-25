@@ -7,6 +7,7 @@
         public string Apellido1 { get; set; }
         public string Apellido2 { get; set; }
         public string Email { get; set; }
+        public string Password { get; set; }
         public int Telefono { get; set; }
         public int Altura { get; set; }
         public int Peso { get; set; }
