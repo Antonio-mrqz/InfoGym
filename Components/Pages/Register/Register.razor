@@ -1,5 +1,6 @@
 ﻿@page "/register"
 @using System.ComponentModel.DataAnnotations
+@inject Services.AuthService AuthService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
@@ -9,7 +10,7 @@
             Registro de Usuario
         </MudText>
 
-        <MudForm Model="@registerModel" IsValidChanged="@(isValid => isFormValid = isValid)">
+        <MudForm Model="@registerModel" @ref="form" IsValidChanged="@(isValid => isFormValid = isValid)">
             <MudTextField Label="Nombre"
                           @bind-Value="registerModel.Name"
                           For="@(() => registerModel.Name)"
@@ -36,7 +37,7 @@
                           For="@(() => registerModel.Password)"
                           Variant="Variant.Outlined"
                           Required="true"
-                          Type="password"
+                          InputType="@PasswordInput"
                           Immediate="true"
                           Class="w-100 mt-3"
                           Adornment="Adornment.Start"
@@ -47,7 +48,7 @@
                           For="@(() => registerModel.ConfirmPassword)"
                           Variant="Variant.Outlined"
                           Required="true"
-                          Type="password"
+                          InputType="@PasswordInput"
                           Immediate="true"
                           Class="w-100 mt-3"
                           Adornment="Adornment.Start"
@@ -69,28 +70,42 @@
     </MudPaper>
 </div>
 
-
 @code
 {
+    private MudForm form;
+    InputType PasswordInput = InputType.Password;
     private RegisterModel registerModel = new();
+
     private bool isFormValid = false;
 
-    private void RegisterUser()
+    private async Task RegisterUser()
     {
+
+        // Verificar coincidencia de contraseñas
         if (registerModel.Password != registerModel.ConfirmPassword)
         {
             Snackbar.Add("Las contraseñas no coinciden", Severity.Error);
             return;
         }
 
-        // Lógica de registro (esto puede incluir la validación y llamadas al backend)
-        if (!string.IsNullOrWhiteSpace(registerModel.Name) && !string.IsNullOrWhiteSpace(registerModel.Email))
+        try
         {
-            Navigation.NavigateTo("/login");
+            // Llamar al servicio de autenticación para registrar
+            bool registrationResult = await AuthService.Register(registerModel.Name, registerModel.Email, registerModel.Password);
+
+            if (registrationResult)
+            {
+                Snackbar.Add("Registro exitoso", Severity.Success);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                Snackbar.Add("Error en el registro. Puede que el usuario ya exista.", Severity.Error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Error en el registro");
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 
@@ -98,18 +113,22 @@
     {
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [MinLength(2, ErrorMessage = "El nombre debe tener al menos 2 caracteres")]
+        [MaxLength(50, ErrorMessage = "El no nombre puede tener mas de 50 caracteres")]
+        [RegularExpression(@"^[A-Z][a-zA-Z]*$", ErrorMessage = "El nombre debe comenzar con una letra mayúscula")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "El correo es obligatorio")]
         [EmailAddress(ErrorMessage = "Correo inválido")]
         public string Email { get; set; }
+
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         [MinLength(8, ErrorMessage = "Debe tener al menos 8 caracteres")]
-        [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?\:{}|<>]).{8,}$", 
-            ErrorMessage = "La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales")]
+        [MaxLength(30, ErrorMessage = "El no nombre puede tener mas de 30 caracteres")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?\:{}|<>]).{8,}$", ErrorMessage = "La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Confirmar contraseña es obligatorio")]
+        [Compare(nameof(Password), ErrorMessage = "Las contraseñas no coinciden")]
         public string ConfirmPassword { get; set; }
     }
 }

@@ -1,13 +1,15 @@
+using Microsoft.Extensions.Configuration;
 using MudBlazor;
 using MudBlazor.Services;
 using MudBlazorWebApp1.Components;
 using MudBlazorWebApp1.Services;
+using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices(config => {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
@@ -16,8 +18,23 @@ builder.Services.AddMudServices(config => {
 
 // Add services to the container.
 builder.Services.AddHttpClient<IExerciseService, ExerciseService>();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Registra los servicios
+builder.Services.AddScoped<AuthService>();
+
+// Configura la conexión MySQL de manera correcta
+builder.Services.AddScoped<MySqlConnection>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("DefaultConnection");
+    return new MySqlConnection(connectionString);
+});
+
+// Añade soporte para MudBlazor
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 
@@ -30,11 +47,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
