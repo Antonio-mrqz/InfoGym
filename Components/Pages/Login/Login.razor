@@ -61,7 +61,8 @@
             {
                 // Si el login es exitoso, navegar al dashboard o página principal
                 Snackbar.Add("Inicio de Sesión exitoso. Bienvenido!", Severity.Success);
-                Navigation.NavigateTo("/");
+                await Task.Delay(500);
+                Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
