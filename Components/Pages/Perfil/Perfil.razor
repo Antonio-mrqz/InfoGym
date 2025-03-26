@@ -1,6 +1,59 @@
 ﻿@page "/perfil"
-<h3>Perfil</h3>
+@using Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+@using MudBlazorWebApp1.Models
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="4" Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-4" Align="Align.Center">Mi Perfil</MudText>
+
+        @if (usuario == null)
+        {
+            <MudAlert Severity="Severity.Warning">No se ha encontrado información del usuario. Por favor, inicie sesión.</MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Nombre" Value="@usuario.Nombre" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Primer Apellido" Value="@usuario.Apellido1" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Segundo Apellido" Value="@usuario.Apellido2" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Email" Value="@usuario.Email" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Teléfono" Value="@usuario.Telefono.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Altura (cm)" Value="@usuario.Altura.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Peso (kg)" Value="@usuario.Peso.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
 
 @code {
+    private Usuario? usuario;
 
+    protected override async Task OnInitializedAsync()
+    {
+        usuario = await AuthService.GetCurrentUser();
+
+        if (usuario == null)
+        {
+            // Redirigir si no hay sesión activa
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
 }

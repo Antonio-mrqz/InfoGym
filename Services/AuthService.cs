@@ -52,7 +52,7 @@ namespace MudBlazorWebApp1.Services
                 await _connection.OpenAsync();
 
                 var cmd = new MySqlCommand(@"
-                SELECT Id, Nombre,Email,Password
+                SELECT *
                 FROM Users 
                 WHERE Email = @Email", _connection);
 
