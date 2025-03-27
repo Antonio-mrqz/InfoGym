@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
+@using MudBlazor
 @using MudBlazorWebApp1.Models
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
@@ -35,16 +36,38 @@
                 <MudItem xs="12" sm="6">
                     <MudTextField Label="Altura (cm)" Value="@usuario.Altura.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Peso (kg)" Value="@usuario.Peso.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
             </MudGrid>
         }
+    </MudPaper>
+
+    <MudPaper Elevation="4" Class="pa-6 mt-6">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Historial de Peso</MudText>
+
+        <MudGrid>
+            <MudItem xs="12" sm="8">
+                <MudChart ChartType="ChartType.Line"
+                          Labels="@pesoLabels"
+                          Data="@pesoData"
+                          Class="w-100"
+                          Style="min-height:300px;" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField Label="Peso actual (kg)" @bind-Value="pesoActual" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="kg" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-2" OnClick="GuardarPeso">
+                    <MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" /> Guardar peso
+                </MudButton>
+            </MudItem>
+        </MudGrid>
     </MudPaper>
 </MudContainer>
 
 @code {
     private Usuario? usuario;
+    private int pesoActual;
+    private List<string> pesoLabels = new();
+    private List<ChartSeries> pesoData = new();
+
+    private List<int> historialPesos = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,8 +75,34 @@
 
         if (usuario == null)
         {
-            // Redirigir si no hay sesión activa
             Navigation.NavigateTo("/login", forceLoad: true);
+            return;
         }
+
+        // Simular pesos anteriores
+        historialPesos = new List<int> { usuario.Peso, usuario.Peso + 1, usuario.Peso + 2 };
+        pesoActual = usuario.Peso;
+
+        ActualizarGrafico();
+    }
+
+    private void GuardarPeso()
+    {
+        historialPesos.Add(pesoActual);
+        ActualizarGrafico();
+    }
+
+    private void ActualizarGrafico()
+    {
+        pesoLabels = Enumerable.Range(1, historialPesos.Count).Select(i => $"Día {i}").ToList();
+
+        pesoData = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Peso (kg)",
+                Data = historialPesos.Select(p => (double)p).ToArray()
+            }
+        };
     }
 }

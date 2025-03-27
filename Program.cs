@@ -24,7 +24,7 @@ builder.Services.AddRazorComponents()
 
 // Registra los servicios
 builder.Services.AddScoped<AuthService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
 // Configura la conexión MySQL de manera correcta
 builder.Services.AddScoped<MySqlConnection>(sp =>
 {

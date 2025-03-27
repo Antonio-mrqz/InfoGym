@@ -20,16 +20,26 @@
                           Class="w-100"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Email" />
-            <MudTextField Label="Contraseña"
-                          @bind-Value="loginModel.Password"
-                          For="@(() => loginModel.Password)"
-                          Variant="Variant.Outlined"
-                          Required="true"
-                          InputType="@PasswordInput"
-                          Immediate="true"
-                          Class="w-100 mt-3"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Lock" />
+            <div style="position: relative;" class="w-100 mt-3">
+                <MudTextField T="string"
+                              Label="Contraseña"
+                              @bind-Value="loginModel.Password"
+                              For="@(() => loginModel.Password)"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              InputType="@PasswordInput"
+                              Immediate="true"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock"
+                              Class="w-100"
+                              Style="padding-right: 40px;" />
+
+                <MudIconButton Icon="@PasswordToggleIcon"
+                               OnClick="@TogglePasswordVisibility"
+                               Color="Color.Default"
+                               Size="Size.Small"
+                               Style="position: absolute; top: 20px; right: 10px;" />
+            </div>
             <MudButton OnClick="LoginUser"
                        Disabled="!isFormValid"
                        Color="Color.Primary"
@@ -48,7 +58,7 @@
 @code {
     private LoginModel loginModel = new();
     private bool isFormValid = false;
-    InputType PasswordInput = InputType.Password;
+    InputType PasswordInput => IsPasswordVisible ? InputType.Text : InputType.Password;
 
     private async Task LoginUser()
     {
@@ -86,5 +96,16 @@
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         [MinLength(8, ErrorMessage = "Debe tener al menos 8 caracteres")]
         public string Password { get; set; }
+    }
+
+    private bool IsPasswordVisible = false;
+
+    private string PasswordToggleIcon => IsPasswordVisible
+        ? Icons.Material.Filled.VisibilityOff
+        : Icons.Material.Filled.Visibility;
+
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
     }
 }

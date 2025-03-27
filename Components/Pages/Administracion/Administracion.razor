@@ -1,0 +1,113 @@
+﻿@page "/administracion"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@inject IUserService UserService
+@inject AuthService AuthService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudContainer Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Gestión de Usuarios</MudText>
+
+    @if (usuarios == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (!usuarios.Any())
+    {
+        <MudAlert Severity="Severity.Info">No hay usuarios registrados.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="usuarios" Dense="true" Hover="true" Bordered="true" Elevation="1">
+            <HeaderContent>
+                <MudTh>Nombre</MudTh>
+                <MudTh>Apellido 1</MudTh>
+                <MudTh>Apellido 2</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Teléfono</MudTh>
+                <MudTh>Altura</MudTh>
+                <MudTh>Peso</MudTh>
+                <MudTh>Acciones</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+                <MudTd DataLabel="Apellido 1">@context.Apellido1</MudTd>
+                <MudTd DataLabel="Apellido 2">@context.Apellido2</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Teléfono">@context.Telefono</MudTd>
+                <MudTd DataLabel="Altura">@context.Altura cm</MudTd>
+                <MudTd DataLabel="Peso">@context.Peso kg</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Warning"
+                                   OnClick="() => EditarUsuario(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   OnClick="() => EliminarUsuario(context)" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private List<Usuario>? usuarios;
+    private Usuario? usuarioActual;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuarioActual = await AuthService.GetCurrentUser();
+
+        if (usuarioActual == null || usuarioActual.Email?.ToLower() != "admin@admin.com")
+        {
+            Navigation.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
+        usuarios = await UserService.GetUsuariosAsync();
+    }
+
+    private void EditarUsuario(Usuario usuario)
+    {
+        Snackbar.Add($"Editar usuario: {usuario.Nombre}", Severity.Info);
+    }
+
+    private async Task EliminarUsuario(Usuario usuario)
+    {
+        bool confirmado = await ConfirmarEliminacion(usuario.Nombre);
+
+        if (confirmado)
+        {
+            bool eliminado = await UserService.EliminarUsuarioAsync(usuario.Id);
+
+            if (eliminado)
+            {
+                usuarios?.Remove(usuario);
+                Snackbar.Add("Usuario eliminado correctamente.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Error al eliminar el usuario.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task<bool> ConfirmarEliminacion(string nombre)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"¿Estás seguro de que deseas eliminar a {nombre}?" },
+            { "ButtonText", "Eliminar" },
+            { "Color", Color.Error }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = DialogService.Show<ConfirmDialog>("Confirmar eliminación", parameters, options);
+        var result = await dialog.Result;
+
+        return !result.Canceled;
+    }
+}
