@@ -10,7 +10,7 @@
         public string Password { get; set; }
         public int Telefono { get; set; }
         public int Altura { get; set; }
-        public int Peso { get; set; }
+        public Double Peso { get; set; }
 
         public string LetraNombre => !string.IsNullOrEmpty(Nombre) ? Nombre.Substring(0, 1).ToUpper() : string.Empty;
     }

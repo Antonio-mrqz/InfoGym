@@ -51,10 +51,84 @@ namespace MudBlazorWebApp1.Services
             await _connection.CloseAsync();
             return rowsAffected > 0;
         }
-
-        public Task<Usuario?> GetUsuarioPorIdAsync(int id)
+        public async Task<bool> ActualizarUsuario(Usuario usuario)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand(@"
+            UPDATE Users SET
+                Nombre = @Nombre,
+                Apellido1 = @Apellido1,
+                Apellido2 = @Apellido2,
+                Email = @Email,
+                Telefono = @Telefono,
+                Altura = @Altura
+            WHERE Id = @Id", _connection);
+
+                cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
+                cmd.Parameters.AddWithValue("@Apellido1", usuario.Apellido1 ?? "");
+                cmd.Parameters.AddWithValue("@Apellido2", usuario.Apellido2 ?? "");
+                cmd.Parameters.AddWithValue("@Email", usuario.Email);
+                cmd.Parameters.AddWithValue("@Telefono", usuario.Telefono);
+                cmd.Parameters.AddWithValue("@Altura", usuario.Altura);
+                cmd.Parameters.AddWithValue("@Id", usuario.Id);
+
+                int filasAfectadas = await cmd.ExecuteNonQueryAsync();
+                return filasAfectadas > 0;
+            }
+            catch (Exception ex)
+            {
+                // Puedes loguear ex.Message si lo necesitas
+                return false;
+            }
+            finally
+            {
+                await _connection.CloseAsync();
+            }
+        }
+
+        public async Task<Usuario?> GetUsuarioPorIdAsync(int id)
+        {
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand(@"
+            SELECT Id, Nombre, Apellido1, Apellido2, Email, Telefono, Altura, Peso
+            FROM Users
+            WHERE Id = @Id", _connection);
+
+                cmd.Parameters.AddWithValue("@Id", id);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new Usuario
+                    {
+                        Id = reader.GetInt32("Id"),
+                        Nombre = reader["Nombre"]?.ToString(),
+                        Apellido1 = reader["Apellido1"]?.ToString(),
+                        Apellido2 = reader["Apellido2"]?.ToString(),
+                        Email = reader["Email"]?.ToString(),
+                        Telefono = reader["Telefono"] != DBNull.Value ? Convert.ToInt32(reader["Telefono"]) : 0,
+                        Altura = reader["Altura"] != DBNull.Value ? Convert.ToInt32(reader["Altura"]) : 0,
+                        Peso = reader["Peso"] != DBNull.Value ? Convert.ToDouble(reader["Peso"]) : 0
+                    };
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                // Puedes loguear el error si lo necesitas
+                return null;
+            }
+            finally
+            {
+                await _connection.CloseAsync();
+            }
         }
 
         public Task<bool> ActualizarUsuarioAsync(Usuario usuario)

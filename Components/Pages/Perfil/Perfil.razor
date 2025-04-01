@@ -1,108 +1,264 @@
 ﻿@page "/perfil"
 @using Services
 @inject AuthService AuthService
+@inject UserService UserService
+@inject PesoService PesoService
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
 
 @using MudBlazor
 @using MudBlazorWebApp1.Models
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
     <MudPaper Elevation="4" Class="pa-6">
-        <MudText Typo="Typo.h4" Class="mb-4" Align="Align.Center">Mi Perfil</MudText>
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Mi Perfil</MudText>
 
         @if (usuario == null)
         {
-            <MudAlert Severity="Severity.Warning">No se ha encontrado información del usuario. Por favor, inicie sesión.</MudAlert>
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudProgressCircular Indeterminate="true" Style="height:70px;width:70px;" />
+            </MudItem>
         }
         else
         {
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Nombre" Value="@usuario.Nombre" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Primer Apellido" Value="@usuario.Apellido1" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Segundo Apellido" Value="@usuario.Apellido2" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Email" Value="@usuario.Email" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Teléfono" Value="@usuario.Telefono.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField Label="Altura (cm)" Value="@usuario.Altura.ToString()" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudItem>
-            </MudGrid>
+            <MudForm @ref="formPerfil">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Nombre"
+                                      @bind-Value="usuario.Nombre"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Primer Apellido"
+                                      @bind-Value="usuario.Apellido1"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Segundo Apellido"
+                                      @bind-Value="usuario.Apellido2"
+                                      Variant="Variant.Outlined"
+                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Label="Email"
+                                      @bind-Value="usuario.Email"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      Validation="@(new Func<string, string>(ValidarEmail))" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string"
+                                      Label="Teléfono"
+                                      @bind-Value="telefonoStr"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      InputType="InputType.Telephone"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidarTelefonoConRegex))" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int"
+                                         Label="Altura (cm)"
+                                         @bind-Value="alturaValue"
+                                         Variant="Variant.Outlined"
+                                         Required="true"
+                                         Min="50"
+                                         Max="300"
+                                         Immediate="true"
+                                         Validation="@(new Func<int, string>(ValidarAlturaNumeric))" />
+                    </MudItem>
+                    <MudItem xs="12" class="mt-4">
+                        <MudButton OnClick="ActualizarPerfil" Variant="Variant.Filled" Color="Color.Primary">
+                            <MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" /> Guardar cambios
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
         }
     </MudPaper>
 
-    <MudPaper Elevation="4" Class="pa-6 mt-6">
-        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Historial de Peso</MudText>
+    @if (usuario != null)
+    {
+        <MudPaper Class="pa-6 mt-6">
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Historial de Peso</MudText>
 
-        <MudGrid>
-            <MudItem xs="12" sm="8">
+            @if (_series.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">No hay datos de peso registrados.</MudAlert>
+            }
+            else
+            {
                 <MudChart ChartType="ChartType.Line"
-                          Labels="@pesoLabels"
-                          Data="@pesoData"
-                          Class="w-100"
-                          Style="min-height:300px;" />
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField Label="Peso actual (kg)" @bind-Value="pesoActual" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="kg" />
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-2" OnClick="GuardarPeso">
-                    <MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" /> Guardar peso
-                </MudButton>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
+                          ChartSeries="@_series"
+                          XAxisLabels="@_xAxisLabels"
+                          Width="100%"
+                          Height="350px" />
+            }
+
+            <MudDivider Class="my-4" />
+
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField Label="Peso Actual(kg)" @bind-Value="pesoActual" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="kg" />
+                    <MudButton OnClick="GuardarPeso" Variant="Variant.Filled" Color="Color.Primary" Class="mt-2 w-100">
+                        <MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" /> Guardar peso
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
 </MudContainer>
+
+<style>
+    .mud-chart-tooltip {
+        display: none !important;
+    }
+</style>
 
 @code {
     private Usuario? usuario;
-    private int pesoActual;
-    private List<string> pesoLabels = new();
-    private List<ChartSeries> pesoData = new();
+    private double pesoActual;
+    private string telefonoStr = "";
+    private int alturaValue;
 
-    private List<int> historialPesos = new();
+    private List<ChartSeries> _series = new();
+    private string[] _xAxisLabels = Array.Empty<string>();
+    private MudForm? formPerfil;
 
     protected override async Task OnInitializedAsync()
     {
         usuario = await AuthService.GetCurrentUser();
-
         if (usuario == null)
         {
             Navigation.NavigateTo("/login", forceLoad: true);
+        }
+        else
+        {
+            usuario = await UserService.GetUsuarioPorIdAsync(usuario.Id);
+
+            // Inicializar los campos con los valores del usuario
+            if (usuario.Telefono != null)
+            {
+                telefonoStr = usuario.Telefono.ToString();
+            }
+
+            if (usuario.Altura > 0)
+            {
+                alturaValue = usuario.Altura;
+            }
+
+            await CargarHistorial();
+        }
+    }
+
+    private async Task CargarHistorial()
+    {
+        var historial = await PesoService.ObtenerHistorialPesos(usuario.Id);
+        if (historial.Count == 0)
+        {
+            _series.Clear();
+            _xAxisLabels = Array.Empty<string>();
             return;
         }
 
-        // Simular pesos anteriores
-        historialPesos = new List<int> { usuario.Peso, usuario.Peso + 1, usuario.Peso + 2 };
-        pesoActual = usuario.Peso;
+        pesoActual = historial.Last().Valor;
 
-        ActualizarGrafico();
-    }
+        _xAxisLabels = historial
+            .Select((p, i) => $"{p.Fecha:dd/MM}")
+            .ToArray();
 
-    private void GuardarPeso()
-    {
-        historialPesos.Add(pesoActual);
-        ActualizarGrafico();
-    }
-
-    private void ActualizarGrafico()
-    {
-        pesoLabels = Enumerable.Range(1, historialPesos.Count).Select(i => $"Día {i}").ToList();
-
-        pesoData = new List<ChartSeries>
+        _series = new List<ChartSeries>
         {
             new ChartSeries
             {
-                Name = "Peso (kg)",
-                Data = historialPesos.Select(p => (double)p).ToArray()
+                Name = "Peso",
+                Data = historial.Select(p => (double)p.Valor).ToArray(),
             }
         };
+    }
+
+    private async Task GuardarPeso()
+    {
+        if (usuario == null || pesoActual <= 0) return;
+
+        bool ok = await PesoService.GuardarPeso(usuario.Id, pesoActual);
+        if (ok)
+        {
+            await CargarHistorial();
+            Snackbar.Add("Peso registrado correctamente.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Hubo un error al registrar el peso.", Severity.Error);
+        }
+    }
+
+    private async Task ActualizarPerfil()
+    {
+        if (formPerfil is not null)
+        {
+            await formPerfil.Validate();
+
+            if (!formPerfil.IsValid)
+            {
+                Snackbar.Add("Por favor, corrija los errores del formulario.", Severity.Warning);
+                return;
+            }
+        }
+
+        // Actualizar los valores del usuario con los campos validados
+        usuario.Telefono = Convert.ToInt32(telefonoStr);
+        usuario.Altura = alturaValue;
+
+        bool ok = await UserService.ActualizarUsuario(usuario);
+
+        if (ok)
+            Snackbar.Add("Perfil actualizado correctamente.", Severity.Success);
+        else
+            Snackbar.Add("Error al actualizar el perfil.", Severity.Error);
+    }
+
+    private string ValidarEmail(string email)
+    {
+        var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+        return string.IsNullOrWhiteSpace(email) || !emailRegex.IsMatch(email) ? "Email no válido" : null;
+    }
+
+    private IEnumerable<string> ValidarTelefonoConRegex(string telefono)
+    {
+        if (string.IsNullOrWhiteSpace(telefono))
+        {
+            yield return "El teléfono es obligatorio";
+            yield break;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(telefono, @"^\d{9}$"))
+        {
+            yield return "El teléfono debe contener exactamente 9 dígitos";
+        }
+    }
+
+    private string ValidarAlturaNumeric(int altura)
+    {
+        if (altura < 50 || altura > 300)
+        {
+            return "Altura debe estar entre 50 y 300 cm";
+        }
+
+        return null;
+    }
+
+    private string ValidarTextoSoloLetras(string texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+            return "Este campo es obligatorio";
+
+        return System.Text.RegularExpressions.Regex.IsMatch(texto, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$")
+            ? null
+            : "Solo se permiten letras y espacios.";
     }
 }

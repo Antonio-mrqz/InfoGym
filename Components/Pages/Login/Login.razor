@@ -59,6 +59,19 @@
     private LoginModel loginModel = new();
     private bool isFormValid = false;
     InputType PasswordInput => IsPasswordVisible ? InputType.Text : InputType.Password;
+    private bool _checked = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_checked)
+        {
+            var user = await AuthService.GetCurrentUser();
+            if (user != null)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+        }
+    }
 
     private async Task LoginUser()
     {
