@@ -12,7 +12,7 @@ namespace MudBlazorWebApp1.Services
         public ExerciseService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _apiKey = configuration["RapidApiKey"] ?? "af9a4e120emsh5894bc2a53bdfb0p1c1531jsnfcb82676f796"; // Reemplaza con tu API key
+            _apiKey = configuration["RapidApiKey"] ?? "af9a4e120emsh5894bc2a53bdfb0p1c1531jsnfcb82676f796";
 
             _httpClient.DefaultRequestHeaders.Add("X-RapidAPI-Key", _apiKey);
             _httpClient.DefaultRequestHeaders.Add("X-RapidAPI-Host", "exercisedb.p.rapidapi.com");

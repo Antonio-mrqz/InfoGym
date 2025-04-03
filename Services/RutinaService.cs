@@ -1,14 +1,20 @@
-﻿using MySqlConnector;
+﻿using MudBlazorWebApp1.Models;
+using MySqlConnector;
+using System.Net.Http;
+using System.Text.Json;
+
 
 namespace MudBlazorWebApp1.Services
 {
     public class RutinaService
     {
         private readonly MySqlConnection _connection;
+        private readonly IExerciseService _exerciseService;
 
-        public RutinaService(MySqlConnection connection)
+        public RutinaService(MySqlConnection connection, IExerciseService exerciseService)
         {
             _connection = connection;
+            _exerciseService = exerciseService;
         }
 
         // Agregar ejercicio a la rutina
@@ -66,6 +72,60 @@ namespace MudBlazorWebApp1.Services
             {
                 await _connection.CloseAsync();
             }
+        }
+
+        public async Task<List<EjercicioConDia>> GetEjerciciosConDiaUsuarioAsync(int usuarioId)
+        {
+            var lista = new List<EjercicioConDia>();
+
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand(@"
+                    SELECT IdEjercicio, Dia 
+                    FROM rutinaejercicios 
+                    WHERE IdUsuario = @UsuarioId
+                ", _connection);
+
+                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                var registros = new List<(string IdEjercicio, int Dia)>();
+
+                while (await reader.ReadAsync())
+                {
+                    var id = reader["IdEjercicio"].ToString();
+                    var dia = Convert.ToInt32(reader["Dia"]);
+                    registros.Add((id, dia));
+                }
+
+                await _connection.CloseAsync();
+
+                foreach (var (id, dia) in registros)
+                {
+                    var ejercicio = await _exerciseService.GetExerciseByIdAsync(id);
+                    if (!string.IsNullOrEmpty(ejercicio.Id))
+                    {
+                        lista.Add(new EjercicioConDia
+                        {
+                            Ejercicio = ejercicio,
+                            DiaSemana = dia
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener ejercicios con día: {ex.Message}");
+            }
+            finally
+            {
+                if (_connection.State == System.Data.ConnectionState.Open)
+                    await _connection.CloseAsync();
+            }
+
+            return lista;
         }
     }
 }
