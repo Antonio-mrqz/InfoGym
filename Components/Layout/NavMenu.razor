@@ -2,7 +2,13 @@
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
     <MudNavLink Href="/exercises" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.FitnessCenter">Ejercicios</MudNavLink>
-
+    @if(Usuario != null)
+    {
+        <MudNavLink Href="/rutina" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CalendarMonth">Rutina</MudNavLink>
+    }
 </MudNavMenu>
 
-
+@code{
+    [CascadingParameter]
+    public Usuario? Usuario { get; set; }
+}

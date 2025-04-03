@@ -20,46 +20,48 @@
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudLayout>
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h4" Class="ml-3">InfoGym</MudText>
-        <MudSpacer />
+<CascadingValue Value="_usuario">
+    <MudLayout>
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudText Typo="Typo.h4" Class="ml-3">InfoGym</MudText>
+            <MudSpacer />
 
-        @if (_usuario == null)
-        {
-            <!-- Si NO hay usuario autenticado, mostrar Login y Register -->
-            <MudLink Color="Color.Inherit" Class="ml-3" Href="/login">Login</MudLink>
-            <MudLink Color="Color.Inherit" Class="ml-3" Href="/register">Register</MudLink>
-        }
-        else
-        {
-            <!-- Si hay usuario autenticado, mostrar Avatar -->
-            <MudButton OnClick="@RedirigirPerfil" Class="avatar-hover"  Variant="Variant.Text" Style="min-width: unset; padding: 0;">
-                <MudAvatar Size="Size.Medium"
-                Color="Color.Dark"
-                Variant="Variant.Filled"
-                Style="cursor: pointer;">
-                    @_usuario.LetraNombre
-                </MudAvatar>
-            </MudButton>
-            <MudButton OnClick="@(async () => await LogoutClicked())" Variant="Variant.Text" Style="min-width: unset; padding: 0;">
-                <MudIcon Icon="@Icons.Material.Filled.Logout"
-                Size="Size.Large"
-                Class="avatar-hover"
-                Style="margin-left: 7px;cursor: pointer;" />
-            </MudButton>
-        }
-    </MudAppBar>
+            @if (_usuario == null)
+            {
+                <!-- Si NO hay usuario autenticado, mostrar Login y Register -->
+                <MudLink Color="Color.Inherit" Class="ml-3" Href="/login">Login</MudLink>
+                <MudLink Color="Color.Inherit" Class="ml-3" Href="/register">Register</MudLink>
+            }
+            else
+            {
+                <!-- Si hay usuario autenticado, mostrar Avatar -->
+                <MudButton OnClick="@RedirigirPerfil" Class="avatar-hover"  Variant="Variant.Text" Style="min-width: unset; padding: 0;">
+                    <MudAvatar Size="Size.Medium"
+                    Color="Color.Dark"
+                    Variant="Variant.Filled"
+                    Style="cursor: pointer;">
+                        @_usuario.LetraNombre
+                    </MudAvatar>
+                </MudButton>
+                <MudButton OnClick="@(async () => await LogoutClicked())" Variant="Variant.Text" Style="min-width: unset; padding: 0;">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout"
+                    Size="Size.Large"
+                    Class="avatar-hover"
+                    Style="margin-left: 7px;cursor: pointer;" />
+                </MudButton>
+            }
+        </MudAppBar>
 
-    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
+        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <NavMenu />
+        </MudDrawer>
 
-    <MudMainContent Class="p-0 m-0">
-        @Body
-    </MudMainContent>
-</MudLayout>
+        <MudMainContent Class="p-0 m-0">
+            @Body
+        </MudMainContent>
+    </MudLayout>
+</CascadingValue>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

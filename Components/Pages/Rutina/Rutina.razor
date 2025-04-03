@@ -1,0 +1,17 @@
+﻿@page "/rutina"
+
+@inject Services.AuthService AuthService
+@inject NavigationManager Navigation
+
+<h3>Rutina</h3>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+       var user = await AuthService.GetCurrentUser();
+       if (user == null)
+       {
+          Navigation.NavigateTo("/login", forceLoad: true);
+       }
+    }
+}
