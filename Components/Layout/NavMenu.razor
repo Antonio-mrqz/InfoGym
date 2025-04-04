@@ -1,11 +1,29 @@
-﻿
-<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="/exercises" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.FitnessCenter">Ejercicios</MudNavLink>
-    @if(Usuario != null)
+﻿<MudNavMenu>
+
+    <MudNavLink Href="" Match="NavLinkMatch.All">
+        <div style="display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 18px;">
+            <MudIcon Icon="@Icons.Material.Filled.Home" />
+            Home
+        </div>
+    </MudNavLink>
+
+    <MudNavLink Href="/exercises" Match="NavLinkMatch.Prefix">
+        <div style="display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 18px;">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" />
+            Ejercicios
+        </div>
+    </MudNavLink>
+
+    @if (Usuario != null)
     {
-        <MudNavLink Href="/rutina" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CalendarMonth">Rutina</MudNavLink>
+        <MudNavLink Href="/rutina" Match="NavLinkMatch.Prefix">
+            <div style="display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 18px;">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" />
+                Rutina
+            </div>
+        </MudNavLink>
     }
+
 </MudNavMenu>
 
 @code{

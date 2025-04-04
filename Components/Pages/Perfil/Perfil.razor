@@ -11,7 +11,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
     <MudPaper Elevation="4" Class="pa-6">
-        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Mi Perfil</MudText>
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4" Style="font-family: 'Oswald', sans-serif;">Mi Perfil</MudText>
 
         @if (usuario == null)
         {
@@ -84,7 +84,7 @@
     @if (usuario != null)
     {
         <MudPaper Class="pa-6 mt-6">
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Historial de Peso</MudText>
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4" Style="font-family: 'Oswald', sans-serif;">Historial de Peso</MudText>
 
             @if (_series.Count == 0)
             {

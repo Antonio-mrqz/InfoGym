@@ -33,7 +33,7 @@
     <TitleContent>
         <div class="d-flex align-center">
             <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" Color="Color.Primary" />
-            <MudText Typo="Typo.h4" Color="Color.Primary">@Exercise?.Name</MudText>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Style="font-family: 'Oswald', sans-serif;">@Exercise?.Name</MudText>
         </div>
     </TitleContent>
 
@@ -59,7 +59,7 @@
                     {
                         <!-- Formulario debajo del GIF -->
                         <MudCardContent Class="form-container">
-                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3" Style="font-family: 'Oswald', sans-serif;">
                                 <MudIcon Icon="@Icons.Material.Filled.PlaylistAdd" Class="mr-2" />
                                 Agregar a Rutina
                             </MudText>
@@ -96,7 +96,7 @@
                 <MudStack Spacing="4">
                     <!-- Detalles Principales -->
                     <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="background-color: var(--mud-palette-surface);">
-                        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3" Style="font-family: 'Oswald', sans-serif;">
                             <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
                             Detalles del Ejercicio
                         </MudText>
@@ -132,7 +132,7 @@
                     @if (Exercise?.Instructions != null && Exercise.Instructions.Any())
                     {
                         <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="background-color: var(--mud-palette-surface);">
-                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3" Style="font-family: 'Oswald', sans-serif;">
                                 <MudIcon Icon="@Icons.Material.Filled.ListAlt" Class="mr-2" />
                                 Instrucciones
                             </MudText>

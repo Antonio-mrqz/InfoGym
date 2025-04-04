@@ -1,0 +1,81 @@
+﻿@namespace MudBlazorWebApp1.Pages
+@using MudBlazorWebApp1.Models
+@using MudBlazor
+@using Services
+@inject AuthService AuthService
+@inject RutinaService RutinaService
+
+<MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true">
+    <TitleContent>
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" Color="Color.Primary" />
+            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-family: 'Oswald', sans-serif;">@Exercise?.Name</MudText>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        <MudGrid>
+            <!-- Imagen -->
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudCard Elevation="8" Class="mb-4" Style="max-width: 350px; width: 100%;">
+                    <div style="position: relative; width: 100%; padding-top: 100%;">
+                        <MudCardMedia Image="@Exercise?.GifUrl"
+                                      Style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 8px;" />
+                    </div>
+                </MudCard>
+            </MudItem>
+
+            <!-- Instrucciones -->
+            @if (Exercise?.Instructions != null && Exercise.Instructions.Any())
+            {
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="background-color: var(--mud-palette-surface);">
+                    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3" Style="font-family: 'Oswald', sans-serif;">
+                        <MudIcon Icon="@Icons.Material.Filled.ListAlt" Class="mr-2" />
+                        Instrucciones
+                    </MudText>
+
+                    <MudList Dense="true" Class="instruction-list" T="string">
+                        @for (int i = 0; i < Exercise.Instructions.Count; i++)
+                        {
+                            var index = i;
+                            <MudListItem>
+                                <MudText Typo="Typo.body1" Class="d-flex align-center">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+                                             Size="Size.Small"
+                                             Class="mr-2"
+                                             Color="Color.Primary" />
+                                    <span>@($"{index + 1}. {Exercise.Instructions[index]}")</span>
+                                </MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudPaper>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-3 mb-3">
+                    No hay instrucciones disponibles para este ejercicio.
+                </MudAlert>
+            }
+        </MudGrid>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Close"
+                   OnClick="Close"
+                   Class="rounded-pill">
+            Cerrar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Exercise Exercise { get; set; }
+
+    void Close() => MudDialog.Close();
+}

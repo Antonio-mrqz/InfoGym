@@ -1,10 +1,32 @@
 ﻿@page "/rutina"
-
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Pages
 @inject Services.AuthService AuthService
 @inject Services.RutinaService RutinaService
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<h3 class="mb-4">Mi Rutina Semanal</h3>
+@using MudBlazor
+@using MudBlazorWebApp1.Models
+
+<style>
+    .fondo-difuminado {
+        backdrop-filter: blur(10px);
+    }
+</style>
+
+@* TITULO *@
+<MudContainer Class="d-flex justify-center align-items-center mt-4">
+    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="font-size: 4rem;" Class="mr-2" />
+    <MudText Typo="Typo.h2">Rutina</MudText>
+</MudContainer>
+
+@* SEPARADOR *@
+<MudContainer Class="mt-2 mb-4">
+    <MudDivider Style="height: 3px; background-color: #D90429;" />
+</MudContainer>
 
 @if (usuario == null || rutina == null)
 {
@@ -15,11 +37,75 @@
 else
 {
 
+    @foreach (var dia in diasSemana.OrderBy(d => d.Key))
+    {
+        var ejerciciosDelDia = rutina.Where(e => e.DiaSemana == dia.Key).ToList();
+        if (ejerciciosDelDia.Any())
+        {
+            <MudPaper Class="pa-4 mb-4" Style="margin-left: 5%;margin-right: 5%">
+                <MudText Typo="Typo.h5" Class="mb-2">@dia.Value</MudText>
+
+                <MudTable Items="@ejerciciosDelDia" Dense="true" Hover="true" Bordered="true">
+                    <HeaderContent>
+                        <MudTh>Nombre</MudTh>
+                        <MudTh>Parte del Cuerpo</MudTh>
+                        <MudTh>Músculo Objetivo</MudTh>
+                        <MudTh>Equipo</MudTh>
+                        <MudTh></MudTh>
+
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Nombre">@context.Ejercicio.Name</MudTd>
+                        <MudTd DataLabel="Parte del Cuerpo">@context.Ejercicio.BodyPart</MudTd>
+                        <MudTd DataLabel="Músculo Objetivo">@context.Ejercicio.Target</MudTd>
+                        <MudTd DataLabel="Equipo">@context.Ejercicio.Equipment</MudTd>
+                        <MudTd DataLabel="Equipo">
+                            <MudButton Variant="Variant.Filled"
+                            Color="Color.Info"
+                            StartIcon="@Icons.Material.Filled.RemoveRedEye"
+                            onclick="() => OpenExerciseDialog(context.Ejercicio)">
+                                Instrucciones
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled"
+                            Color="Color.Primary"
+                            onclick="() => BorraEjercicio(context.Id)">
+                                <MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon>
+                            </MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        }
+    }
+}
+@if(rutina?.Count == 0)
+{
+    <MudPaper Class="pa-4 my-4 d-flex flex-column align-center justify-center" Style="margin: 5%">
+        <MudText Typo="Typo.h6" Class="mb-2">Todavía no has agregado ningún ejercicio a tu rutina.</MudText>
+        <MudButton Variant="Variant.Filled"
+        Color="Color.Primary"
+        StartIcon="@Icons.Material.Filled.FitnessCenter"
+        OnClick="@(() => Navigation.NavigateTo("/exercises"))">
+            Ver Ejercicios
+        </MudButton>
+    </MudPaper>
 }
 
 @code {
     private Usuario? usuario;
     private List<EjercicioConDia>? rutina;
+
+    // Diccionario para traducir número de día a nombre
+    private readonly Dictionary<int, string> diasSemana = new()
+    {
+        { 1, "Lunes" },
+        { 2, "Martes" },
+        { 3, "Miércoles" },
+        { 4, "Jueves" },
+        { 5, "Viernes" },
+        { 6, "Sábado" },
+        { 7, "Domingo" }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -33,4 +119,36 @@ else
         rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
     }
 
+    private async Task BorraEjercicio(int idEjercicioRutina)
+    {
+        bool eliminado = await RutinaService.EliminarEjercicioAsync(idEjercicioRutina);
+
+        if (eliminado)
+        {
+            // Vuelve a cargar la rutina actualizada
+            rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
+            Snackbar.Add("Ejercicio eliminado correctamente.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("No se pudo eliminar el ejercicio.", Severity.Error);
+        }
+    }
+
+    private async Task OpenExerciseDialog(Exercise exercise)
+    {
+        var parameters = new DialogParameters<ExerciseInstructionsDialog2>
+        {
+            { x => x.Exercise, exercise }
+        };
+
+        var options = new DialogOptions
+            {
+                FullWidth = true,
+                MaxWidth = MaxWidth.Medium,
+                BackgroundClass = "fondo-difuminado"
+            };
+
+        DialogService.Show<ExerciseInstructionsDialog2>("Instrucciones del ejercicio", parameters, options);
+    }
 }

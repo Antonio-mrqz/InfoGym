@@ -47,7 +47,7 @@ namespace MudBlazorWebApp1.Services
         }
 
         // Eliminar ejercicio de la rutina (por usuario y ejercicio)
-        public async Task<bool> EliminarEjercicioAsync(int usuarioId, string ejercicioId)
+        public async Task<bool> EliminarEjercicioAsync(int idABorrar)
         {
             try
             {
@@ -55,11 +55,10 @@ namespace MudBlazorWebApp1.Services
 
                 var cmd = new MySqlCommand(@"
                     DELETE FROM rutinaejercicios
-                    WHERE IdUsuario = @UsuarioId AND IdEjercicio = @EjercicioId
+                    WHERE Id = @Id
                 ", _connection);
 
-                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
-                cmd.Parameters.AddWithValue("@EjercicioId", ejercicioId);
+                cmd.Parameters.AddWithValue("@Id", idABorrar);
 
                 await cmd.ExecuteNonQueryAsync();
                 return true;
@@ -83,7 +82,7 @@ namespace MudBlazorWebApp1.Services
                 await _connection.OpenAsync();
 
                 var cmd = new MySqlCommand(@"
-                    SELECT IdEjercicio, Dia 
+                    SELECT Id, IdEjercicio, Dia 
                     FROM rutinaejercicios 
                     WHERE IdUsuario = @UsuarioId
                 ", _connection);
@@ -91,24 +90,26 @@ namespace MudBlazorWebApp1.Services
                 cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
 
                 using var reader = await cmd.ExecuteReaderAsync();
-                var registros = new List<(string IdEjercicio, int Dia)>();
+                var registros = new List<(int Id, string IdEjercicio, int Dia)>();
 
                 while (await reader.ReadAsync())
                 {
-                    var id = reader["IdEjercicio"].ToString();
+                    var id = Convert.ToInt32(reader["Id"]);
+                    var idEjercicio = reader["IdEjercicio"].ToString();
                     var dia = Convert.ToInt32(reader["Dia"]);
-                    registros.Add((id, dia));
+                    registros.Add((id, idEjercicio, dia));
                 }
 
                 await _connection.CloseAsync();
 
-                foreach (var (id, dia) in registros)
+                foreach (var (id, idEjercicio, dia) in registros)
                 {
-                    var ejercicio = await _exerciseService.GetExerciseByIdAsync(id);
+                    var ejercicio = await _exerciseService.GetExerciseByIdAsync(idEjercicio);
                     if (!string.IsNullOrEmpty(ejercicio.Id))
                     {
                         lista.Add(new EjercicioConDia
                         {
+                            Id = id,
                             Ejercicio = ejercicio,
                             DiaSemana = dia
                         });
