@@ -23,6 +23,15 @@
             </div>
         </MudNavLink>
     }
+    @if (Usuario?.Email == "Admin@admin.com")
+    {
+        <MudNavLink Href="/administracion" Match="NavLinkMatch.Prefix">
+            <div style="display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 18px;">
+                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" />
+                Administración
+            </div>
+        </MudNavLink>
+    }
 
 </MudNavMenu>
 
