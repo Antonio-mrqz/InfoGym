@@ -1,19 +1,19 @@
-﻿@using Newtonsoft.Json;
+﻿@using Newtonsoft.Json
 @using Services
-
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 @inject AuthService AuthService
+@inject UserService UserService
 @inherits LayoutComponentBase
 
 <style>
     .avatar-hover {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .avatar-hover:hover {
-    transform: scale(1.2);
-    }
+        .avatar-hover:hover {
+            transform: scale(1.2);
+        }
 </style>
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
@@ -29,26 +29,29 @@
 
             @if (_usuario == null)
             {
-                <!-- Si NO hay usuario autenticado, mostrar Login y Register -->
+                <!-- Si NO hay usuario autenticado -->
                 <MudLink Color="Color.Inherit" Class="ml-3" Href="/login">Login</MudLink>
                 <MudLink Color="Color.Inherit" Class="ml-3" Href="/register">Register</MudLink>
             }
             else
             {
-                <!-- Si hay usuario autenticado, mostrar Avatar -->
-                <MudButton OnClick="@RedirigirPerfil" Class="avatar-hover"  Variant="Variant.Text" Style="min-width: unset; padding: 0;">
-                    <MudAvatar Size="Size.Medium"
-                    Color="Color.Dark"
-                    Variant="Variant.Filled"
-                    Style="cursor: pointer;">
-                        @_usuario.LetraNombre
-                    </MudAvatar>
+                <!-- Si hay usuario autenticado -->
+                <MudButton OnClick="@RedirigirPerfil" Class="avatar-hover" Variant="Variant.Text" Style="min-width: unset; padding: 0;">
+                    @if (!string.IsNullOrEmpty(_usuario?.FotoBase64))
+                    {
+                        <MudAvatar Size="Size.Medium" Style="border: 2px solid white; cursor: pointer;">
+                            <MudImage Src="@FotoSrc" Alt="Foto perfil" Style="border-radius: 50%; width: 100%; height: 100%;" />
+                        </MudAvatar>
+                    }
+                    else
+                    {
+                        <MudAvatar Size="Size.Medium" Color="Color.Dark" Variant="Variant.Filled" Style="border: 2px solid white; cursor: pointer;">
+                            @_usuario.LetraNombre
+                        </MudAvatar>
+                    }
                 </MudButton>
                 <MudButton OnClick="@(async () => await LogoutClicked())" Variant="Variant.Text" Style="min-width: unset; padding: 0;">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout"
-                    Size="Size.Large"
-                    Class="avatar-hover"
-                    Style="margin-left: 7px;cursor: pointer;" />
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Large" Class="avatar-hover" Style="margin-left: 7px; cursor: pointer;" />
                 </MudButton>
             }
         </MudAppBar>
@@ -73,7 +76,12 @@
     private bool _drawerOpen = false;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
-    public Usuario? _usuario = null; // Variable para almacenar el usuario autenticado
+    public Usuario? _usuario = null;
+    private bool _usuarioCargado = false;
+
+    public string FotoSrc => string.IsNullOrEmpty(_usuario?.FotoBase64)
+    ? string.Empty
+    : $"data:image/png;base64,{_usuario.FotoBase64}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,28 +90,59 @@
                 PaletteDark = _darkPalette,
                 LayoutProperties = new LayoutProperties()
             };
+    }
 
-        await CargarUsuario();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (firstRender)
+        {
+            try
+            {
+                var userJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "user");
+                if (!string.IsNullOrEmpty(userJson))
+                {
+                    _usuario = JsonConvert.DeserializeObject<Usuario>(userJson);
+
+                    // 🔁 Guarda el usuario en el AuthService
+                    AuthService.SetCurrentUser(_usuario);
+
+                    // Si quieres, también carga la foto:
+                    var foto = await UserService.GetFotoBase64Async(_usuario.Id);
+                    _usuario.FotoBase64 = foto;
+
+                    _drawerOpen = true;
+                    StateHasChanged();
+                }
+            }
+            catch
+            {
+                _usuario = null;
+            }
+        }
     }
 
     private async Task CargarUsuario()
     {
         try
         {
-            // Obtener el usuario almacenado en localStorage
             var userJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "user");
             if (!string.IsNullOrEmpty(userJson))
             {
                 _usuario = JsonConvert.DeserializeObject<Usuario>(userJson);
+
+                // Obtener foto actualizada desde la base de datos
+                var foto = await UserService.GetFotoBase64Async(_usuario.Id);
+                _usuario.FotoBase64 = foto;
+
                 _drawerOpen = true;
+                StateHasChanged(); // Redibujar
             }
         }
         catch
         {
-            _usuario = null; // Si hay un error, se asume que no hay usuario autenticado
+            _usuario = null;
         }
-
-        StateHasChanged(); // Forzar actualización de la interfaz
     }
 
     private void DrawerToggle()
@@ -111,8 +150,19 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private readonly PaletteDark _darkPalette = new()
+    private void RedirigirPerfil()
     {
+        Navigation.NavigateTo("/perfil");
+    }
+
+    private async Task LogoutClicked()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private readonly PaletteDark _darkPalette = new()
+        {
             Primary = "#D90429",
             Surface = "#222222",
             Background = "#121212",
@@ -126,16 +176,14 @@
             DrawerText = "#FFFFFF",
             TableLines = "#2A2A2A",
             Divider = "#2A2A2A",
-    };
+        };
 
-    private void RedirigirPerfil()
+    public async Task ActualizarFoto(string nuevaFotoBase64)
     {
-        Navigation.NavigateTo("/perfil"); 
-    }
-
-    private async Task LogoutClicked()
-    {
-        await AuthService.Logout();
-        Navigation.NavigateTo("/", forceLoad: true);
+        if (_usuario != null)
+        {
+            _usuario.FotoBase64 = nuevaFotoBase64;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 }

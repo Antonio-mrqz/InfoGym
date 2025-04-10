@@ -64,7 +64,8 @@ namespace MudBlazorWebApp1.Services
                 Apellido2 = @Apellido2,
                 Email = @Email,
                 Telefono = @Telefono,
-                Altura = @Altura
+                Altura = @Altura,
+                FotoBase64 = @FotoBase64
             WHERE Id = @Id", _connection);
 
                 cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
@@ -74,6 +75,7 @@ namespace MudBlazorWebApp1.Services
                 cmd.Parameters.AddWithValue("@Telefono", usuario.Telefono);
                 cmd.Parameters.AddWithValue("@Altura", usuario.Altura);
                 cmd.Parameters.AddWithValue("@Id", usuario.Id);
+                cmd.Parameters.AddWithValue("@FotoBase64", usuario.FotoBase64);
 
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
                 return filasAfectadas > 0;
@@ -96,7 +98,7 @@ namespace MudBlazorWebApp1.Services
                 await _connection.OpenAsync();
 
                 var cmd = new MySqlCommand(@"
-            SELECT Id, Nombre, Apellido1, Apellido2, Email, Telefono, Altura, Peso
+            SELECT Id, Nombre, Apellido1, Apellido2, Email, Telefono, Altura, Peso, FotoBase64
             FROM Users
             WHERE Id = @Id", _connection);
 
@@ -114,7 +116,8 @@ namespace MudBlazorWebApp1.Services
                         Email = reader["Email"]?.ToString(),
                         Telefono = reader["Telefono"] != DBNull.Value ? Convert.ToInt32(reader["Telefono"]) : 0,
                         Altura = reader["Altura"] != DBNull.Value ? Convert.ToInt32(reader["Altura"]) : 0,
-                        Peso = reader["Peso"] != DBNull.Value ? Convert.ToDouble(reader["Peso"]) : 0
+                        Peso = reader["Peso"] != DBNull.Value ? Convert.ToDouble(reader["Peso"]) : 0,
+                        FotoBase64 = reader["FotoBase64"]?.ToString(),
                     };
                 }
 
@@ -134,6 +137,28 @@ namespace MudBlazorWebApp1.Services
         public Task<bool> ActualizarUsuarioAsync(Usuario usuario)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<string?> GetFotoBase64Async(int userId)
+        {
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand("SELECT FotoBase64 FROM Users WHERE Id = @Id", _connection);
+                cmd.Parameters.AddWithValue("@Id", userId);
+
+                var result = await cmd.ExecuteScalarAsync();
+                return result != DBNull.Value ? result?.ToString() : null;
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                await _connection.CloseAsync();
+            }
         }
     }
 }

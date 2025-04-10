@@ -94,6 +94,7 @@ else
 @code {
     private Usuario? usuario;
     private List<EjercicioConDia>? rutina;
+    private bool _initialized;
 
     // Diccionario para traducir número de día a nombre
     private readonly Dictionary<int, string> diasSemana = new()
@@ -107,16 +108,23 @@ else
         { 7, "Domingo" }
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        usuario = await AuthService.GetCurrentUser();
-        if (usuario == null)
+        if (!_initialized)
         {
-            Navigation.NavigateTo("/login", forceLoad: true);
-            return;
-        }
+            _initialized = true;
 
-        rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
+            usuario = await AuthService.GetCurrentUserAsync();
+            if (usuario == null)
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
+
+            StateHasChanged(); // Notifica al renderizador para actualizar la UI con los nuevos datos
+        }
     }
 
     private async Task BorraEjercicio(int idEjercicioRutina)
@@ -125,9 +133,9 @@ else
 
         if (eliminado)
         {
-            // Vuelve a cargar la rutina actualizada
             rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
             Snackbar.Add("Ejercicio eliminado correctamente.", Severity.Success);
+            StateHasChanged(); // Asegura que se renderice la nueva lista
         }
         else
         {

@@ -5,13 +5,88 @@
 @inject PesoService PesoService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@using Layout
 
 @using MudBlazor
 @using MudBlazorWebApp1.Models
 
+<style>
+    input[type="file"] {
+        margin-top: 0.5rem;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        border: 4px solid #f5f5f5;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #121212;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .avatar-overlay {
+        position: absolute;
+        bottom: -5px;
+        right: -25px;
+        background-color: var(--mud-palette-primary);
+        border-radius: 50%;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 2;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .avatar-overlay:hover {
+            background-color: var(--mud-palette-primary-darken);
+            transform: scale(1.1);
+        }
+
+        .avatar-overlay .mud-icon {
+            color: white;
+            font-size: 24px;
+            margin: 0; /* quita espacios extra */
+            line-height: 1; /* evita que el ícono se desplace hacia abajo */
+        }
+
+    .foto-guardar-btn {
+        margin-top: 16px;
+        transition: all 0.3s;
+        border-radius: 20px;
+        padding: 5px 20px;
+    }
+
+        .foto-guardar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .mud-chart-tooltip {
+        display: none !important;
+    }
+</style>
+
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
     <MudPaper Elevation="4" Class="pa-6">
-        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4" Style="font-family: 'Oswald', sans-serif;">Mi Perfil</MudText>
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Mi Perfil</MudText>
 
         @if (usuario == null)
         {
@@ -21,55 +96,46 @@
         }
         else
         {
+            <MudGrid Class="mb-4" Justify="Justify.Center">
+                <MudItem xs="12" Class="d-flex flex-column align-items-center">
+                    <div class="avatar-wrapper">
+                        @if (!string.IsNullOrEmpty(usuario?.FotoBase64))
+                        {
+                            <img src="@FotoSrc" class="avatar-img" />
+                        }
+                        else
+                        {
+                            <div class="avatar-img d-flex align-items-center justify-content-center bg-dark text-white">
+                                <span style="font-size: 5rem;">@usuario?.Nombre?[0]</span>
+                            </div>
+                        }
+
+                        <label for="fotoPerfilInput" class="avatar-overlay">
+                            <MudIcon Icon="@Icons.Material.Filled.PhotoCamera" />
+                        </label>
+                        <InputFile id="fotoPerfilInput" class="d-none" OnChange="CargarFoto" />
+                    </div>
+                </MudItem>
+            </MudGrid>
             <MudForm @ref="formPerfil">
                 <MudGrid>
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="Nombre"
-                                      @bind-Value="usuario.Nombre"
-                                      Variant="Variant.Outlined"
-                                      Required="true"
-                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                        <MudTextField Label="Nombre" @bind-Value="usuario.Nombre" Variant="Variant.Outlined" Required="true" Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="Primer Apellido"
-                                      @bind-Value="usuario.Apellido1"
-                                      Variant="Variant.Outlined"
-                                      Required="true"
-                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                        <MudTextField Label="Primer Apellido" @bind-Value="usuario.Apellido1" Variant="Variant.Outlined" Required="true" Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="Segundo Apellido"
-                                      @bind-Value="usuario.Apellido2"
-                                      Variant="Variant.Outlined"
-                                      Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
+                        <MudTextField Label="Segundo Apellido" @bind-Value="usuario.Apellido2" Variant="Variant.Outlined" Validation="@(new Func<string, string>(ValidarTextoSoloLetras))" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField Label="Email"
-                                      @bind-Value="usuario.Email"
-                                      Variant="Variant.Outlined"
-                                      Required="true"
-                                      Validation="@(new Func<string, string>(ValidarEmail))" />
+                        <MudTextField Label="Email" @bind-Value="usuario.Email" Variant="Variant.Outlined" Required="true" Validation="@(new Func<string, string>(ValidarEmail))" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField T="string"
-                                      Label="Teléfono"
-                                      @bind-Value="telefonoStr"
-                                      Variant="Variant.Outlined"
-                                      Required="true"
-                                      InputType="InputType.Telephone"
-                                      Immediate="true"
-                                      Validation="@(new Func<string, IEnumerable<string>>(ValidarTelefonoConRegex))" />
+                        <MudTextField T="string" Label="Teléfono" @bind-Value="telefonoStr" Variant="Variant.Outlined" Required="true" InputType="InputType.Telephone" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(ValidarTelefonoConRegex))" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField T="int"
-                                         Label="Altura (cm)"
-                                         @bind-Value="alturaValue"
-                                         Variant="Variant.Outlined"
-                                         Required="true"
-                                         Min="50"
-                                         Max="300"
-                                         Immediate="true"
-                                         Validation="@(new Func<int, string>(ValidarAlturaNumeric))" />
+                        <MudNumericField T="int" Label="Altura (cm)" @bind-Value="alturaValue" Variant="Variant.Outlined" Required="true" Min="50" Max="300" Immediate="true" Validation="@(new Func<int, string>(ValidarAlturaNumeric))" />
                     </MudItem>
                     <MudItem xs="12" class="mt-4">
                         <MudButton OnClick="ActualizarPerfil" Variant="Variant.Filled" Color="Color.Primary">
@@ -84,7 +150,7 @@
     @if (usuario != null)
     {
         <MudPaper Class="pa-6 mt-6">
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4" Style="font-family: 'Oswald', sans-serif;">Historial de Peso</MudText>
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Historial de Peso</MudText>
 
             @if (_series.Count == 0)
             {
@@ -92,11 +158,7 @@
             }
             else
             {
-                <MudChart ChartType="ChartType.Line"
-                          ChartSeries="@_series"
-                          XAxisLabels="@_xAxisLabels"
-                          Width="100%"
-                          Height="350px" />
+                <MudChart ChartType="ChartType.Line" ChartSeries="@_series" XAxisLabels="@_xAxisLabels" Width="100%" Height="350px" />
             }
 
             <MudDivider Class="my-4" />
@@ -113,45 +175,48 @@
     }
 </MudContainer>
 
-<style>
-    .mud-chart-tooltip {
-        display: none !important;
-    }
-</style>
-
 @code {
     private Usuario? usuario;
     private double pesoActual;
     private string telefonoStr = "";
     private int alturaValue;
+    private bool _primeraCarga = true;
+
+    [CascadingParameter] public Usuario? LayoutUsuario { get; set; }
+    [CascadingParameter] public MainLayout? Layout { get; set; }
 
     private List<ChartSeries> _series = new();
     private string[] _xAxisLabels = Array.Empty<string>();
     private MudForm? formPerfil;
 
-    protected override async Task OnInitializedAsync()
+    private string FotoSrc => string.IsNullOrEmpty(usuario?.FotoBase64)
+        ? string.Empty
+        : $"data:image/png;base64,{usuario.FotoBase64}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        usuario = await AuthService.GetCurrentUser();
-        if (usuario == null)
+        if (firstRender && _primeraCarga)
         {
-            Navigation.NavigateTo("/login", forceLoad: true);
-        }
-        else
-        {
+            _primeraCarga = false;
+
+            usuario = await AuthService.GetCurrentUserAsync();
+            if (usuario == null)
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
             usuario = await UserService.GetUsuarioPorIdAsync(usuario.Id);
 
-            // Inicializar los campos con los valores del usuario
-            if (usuario.Telefono != null)
-            {
+            if (usuario?.Telefono != null)
                 telefonoStr = usuario.Telefono.ToString();
-            }
 
-            if (usuario.Altura > 0)
-            {
+            if (usuario?.Altura > 0)
                 alturaValue = usuario.Altura;
-            }
 
-            await CargarHistorial();
+            if (usuario != null) await CargarHistorial();
+
+            StateHasChanged();
         }
     }
 
@@ -168,7 +233,7 @@
         pesoActual = historial.Last().Valor;
 
         _xAxisLabels = historial
-            .Select((p, i) => $"{p.Fecha:dd/MM}")
+            .Select(p => $"{p.Fecha:dd/MM}")
             .ToArray();
 
         _series = new List<ChartSeries>
@@ -210,16 +275,24 @@
             }
         }
 
-        // Actualizar los valores del usuario con los campos validados
         usuario.Telefono = Convert.ToInt32(telefonoStr);
         usuario.Altura = alturaValue;
 
         bool ok = await UserService.ActualizarUsuario(usuario);
 
         if (ok)
+        {
             Snackbar.Add("Perfil actualizado correctamente.", Severity.Success);
+
+            if (Layout is not null)
+                await Layout.ActualizarFoto(usuario.FotoBase64);
+
+            StateHasChanged();
+        }
         else
+        {
             Snackbar.Add("Error al actualizar el perfil.", Severity.Error);
+        }
     }
 
     private string ValidarEmail(string email)
@@ -245,9 +318,7 @@
     private string ValidarAlturaNumeric(int altura)
     {
         if (altura < 50 || altura > 300)
-        {
             return "Altura debe estar entre 50 y 300 cm";
-        }
 
         return null;
     }
@@ -260,5 +331,19 @@
         return System.Text.RegularExpressions.Regex.IsMatch(texto, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$")
             ? null
             : "Solo se permiten letras y espacios.";
+    }
+
+    private async Task CargarFoto(InputFileChangeEventArgs e)
+    {
+        var archivo = e.File;
+        if (archivo != null)
+        {
+            using var stream = archivo.OpenReadStream(1024 * 1024 * 5); // Máx 5MB
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            usuario.FotoBase64 = Convert.ToBase64String(bytes);
+            StateHasChanged();
+        }
     }
 }

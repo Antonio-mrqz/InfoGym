@@ -191,7 +191,7 @@
     private bool showSuccessMessage = false;
     protected override async Task OnInitializedAsync()
     {
-        usuario = await AuthService.GetCurrentUser();
+        usuario = AuthService.CurrentUser;
     }
 
     // Clase para representar los días con Id y Nombre

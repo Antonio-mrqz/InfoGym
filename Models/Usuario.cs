@@ -13,5 +13,6 @@
         public Double Peso { get; set; }
 
         public string LetraNombre => !string.IsNullOrEmpty(Nombre) ? Nombre.Substring(0, 1).ToUpper() : string.Empty;
+        public string FotoBase64 { get; set; }
     }
 }

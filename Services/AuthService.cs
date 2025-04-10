@@ -90,20 +90,34 @@ namespace MudBlazorWebApp1.Services
                 await _connection.CloseAsync();
             }
         }
-        public async Task<Usuario> GetCurrentUser()
+        public Usuario? CurrentUser { get; private set; }
+        public async Task<Usuario?> GetCurrentUserAsync()
         {
-            var userJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "user");
+            if (CurrentUser != null)
+                return CurrentUser;
 
+            var userJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "user");
             if (!string.IsNullOrEmpty(userJson))
             {
-                return JsonConvert.DeserializeObject<Usuario>(userJson);
+                CurrentUser = JsonConvert.DeserializeObject<Usuario>(userJson);
+                return CurrentUser;
             }
 
-            return null;  // Si no hay un usuario guardado en localStorage
+            return null;
+        }
+        public void SetCurrentUser(Usuario usuario)
+        {
+            CurrentUser = usuario;
+        }
+
+        public void LogoutUser()
+        {
+            CurrentUser = null;
         }
         public async Task Logout()
         {
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "user");
+
         }
 
     }
