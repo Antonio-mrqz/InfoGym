@@ -25,15 +25,17 @@
     }
 </style>
 
-@* TITULO *@
-<MudContainer Class="d-flex justify-center align-items-center mt-4">
-    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 4rem;" Class="mr-2" />
-    <MudText Typo="Typo.h2">Ejercicios</MudText>
-</MudContainer>
-
-@* SEPARADOR *@
-<MudContainer Class="mt-2 mb-4">
-    <MudDivider Style="height: 3px; background-color: #D90429;" />
+@* TITULO Y SEPARADOR *@
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-4 text-center">
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; margin-right: 0.5rem;" />
+        <MudText Typo="Typo.h2"
+                 Class="font-weight-bold"
+                 Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
+            Ejercicios
+        </MudText>
+    </div>
+    <MudDivider Class="mt-2 mx-auto" Style="height: 3px; background-color: #D90429; width: 100px;" />
 </MudContainer>
 
 

@@ -15,17 +15,22 @@
     .fondo-difuminado {
         backdrop-filter: blur(10px);
     }
+
+    .mud-table-row:hover {
+        background-color: rgba(217, 4, 41, 0.10) !important;
+    }
 </style>
 
-@* TITULO *@
-<MudContainer Class="d-flex justify-center align-items-center mt-4">
-    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="font-size: 4rem;" Class="mr-2" />
-    <MudText Typo="Typo.h2">Rutina</MudText>
-</MudContainer>
-
-@* SEPARADOR *@
-<MudContainer Class="mt-2 mb-4">
-    <MudDivider Style="height: 3px; background-color: #D90429;" />
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-4 text-center">
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="font-size: 3rem; margin-right: 0.5rem;" />
+        <MudText Typo="Typo.h2"
+                 Class="font-weight-bold"
+                 Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
+            Rutina
+        </MudText>
+    </div>
+    <MudDivider Class="mt-2 mx-auto" Style="height: 3px; background-color: #D90429; width: 100px;" />
 </MudContainer>
 
 @if (usuario == null || rutina == null)
@@ -36,41 +41,45 @@
 }
 else
 {
-
     @foreach (var dia in diasSemana.OrderBy(d => d.Key))
     {
         var ejerciciosDelDia = rutina.Where(e => e.DiaSemana == dia.Key).ToList();
         if (ejerciciosDelDia.Any())
         {
-            <MudPaper Class="pa-4 mb-4" Style="margin-left: 5%;margin-right: 5%">
-                <MudText Typo="Typo.h5" Class="mb-2">@dia.Value</MudText>
+            <MudPaper Elevation="4" Class="pa-4 mb-4" Style="margin-inline: 5%; border-radius: 12px;">
+                <MudText Typo="Typo.h5" Class="mb-3" Color="Color.Primary">
+                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" /> @dia.Value
+                </MudText>
 
-                <MudTable Items="@ejerciciosDelDia" Dense="true" Hover="true" Bordered="true">
+                <MudTable Items="@ejerciciosDelDia" Dense="true" Hover="true" Bordered="false" Class="mud-elevation-1" Striped="true" Outlined="true">
                     <HeaderContent>
                         <MudTh>Nombre</MudTh>
                         <MudTh>Parte del Cuerpo</MudTh>
                         <MudTh>Músculo Objetivo</MudTh>
                         <MudTh>Equipo</MudTh>
                         <MudTh></MudTh>
-
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Nombre">@context.Ejercicio.Name</MudTd>
                         <MudTd DataLabel="Parte del Cuerpo">@context.Ejercicio.BodyPart</MudTd>
                         <MudTd DataLabel="Músculo Objetivo">@context.Ejercicio.Target</MudTd>
                         <MudTd DataLabel="Equipo">@context.Ejercicio.Equipment</MudTd>
-                        <MudTd DataLabel="Equipo">
-                            <MudButton Variant="Variant.Filled"
-                            Color="Color.Info"
-                            StartIcon="@Icons.Material.Filled.RemoveRedEye"
-                            onclick="() => OpenExerciseDialog(context.Ejercicio)">
-                                Instrucciones
-                            </MudButton>
-                            <MudButton Variant="Variant.Filled"
-                            Color="Color.Primary"
-                            onclick="() => BorraEjercicio(context.Id)">
-                                <MudIcon Icon="@Icons.Material.Filled.Delete"></MudIcon>
-                            </MudButton>
+                        <MudTd DataLabel="Acciones">
+                            <MudStack Direction="Row" Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye"
+                                               Color="Color.Info"
+                                               Size="Size.Medium"
+                                               Style="width: 40px; height: 40px;"
+                                               OnClick="() => OpenExerciseDialog(context.Ejercicio)"
+                                               AriaLabel="Ver instrucciones" />
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Medium"
+                                               Style="width: 40px; height: 40px;"
+                                               OnClick="() => BorraEjercicio(context.Id)"
+                                               AriaLabel="Eliminar ejercicio" />
+                            </MudStack>
                         </MudTd>
                     </RowTemplate>
                 </MudTable>
@@ -78,14 +87,15 @@ else
         }
     }
 }
-@if(rutina?.Count == 0)
+
+@if (rutina?.Count == 0)
 {
     <MudPaper Class="pa-4 my-4 d-flex flex-column align-center justify-center" Style="margin: 5%">
         <MudText Typo="Typo.h6" Class="mb-2">Todavía no has agregado ningún ejercicio a tu rutina.</MudText>
         <MudButton Variant="Variant.Filled"
-        Color="Color.Primary"
-        StartIcon="@Icons.Material.Filled.FitnessCenter"
-        OnClick="@(() => Navigation.NavigateTo("/exercises"))">
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.FitnessCenter"
+                   OnClick="@(() => Navigation.NavigateTo("/exercises"))">
             Ver Ejercicios
         </MudButton>
     </MudPaper>
@@ -96,7 +106,6 @@ else
     private List<EjercicioConDia>? rutina;
     private bool _initialized;
 
-    // Diccionario para traducir número de día a nombre
     private readonly Dictionary<int, string> diasSemana = new()
     {
         { 1, "Lunes" },
@@ -123,7 +132,7 @@ else
 
             rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
 
-            StateHasChanged(); // Notifica al renderizador para actualizar la UI con los nuevos datos
+            StateHasChanged();
         }
     }
 
@@ -135,7 +144,7 @@ else
         {
             rutina = await RutinaService.GetEjerciciosConDiaUsuarioAsync(usuario.Id);
             Snackbar.Add("Ejercicio eliminado correctamente.", Severity.Success);
-            StateHasChanged(); // Asegura que se renderice la nueva lista
+            StateHasChanged();
         }
         else
         {
