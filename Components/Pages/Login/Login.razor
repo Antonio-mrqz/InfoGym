@@ -65,7 +65,7 @@
     {
         if (firstRender && !_checked)
         {
-            var user =  AuthService.CurrentUser;
+            var user = await AuthService.GetCurrentUserAsync();
             if (user != null)
             {
                 Navigation.NavigateTo("/", forceLoad: true);
