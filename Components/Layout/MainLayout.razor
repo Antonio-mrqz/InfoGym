@@ -24,7 +24,9 @@
     <MudLayout>
         <MudAppBar Elevation="1">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-            <MudText Typo="Typo.h4" Class="ml-3" Style="font-family: 'Oswald', sans-serif;">InfoGym</MudText>
+            <MudImage Src="/images/Logo.png"
+                      Alt="InfoGym"
+                      Style="margin-left:15px; width: 60px; height: auto; background-color: white; border-radius: 12px; padding: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.2);" />
             <MudSpacer />
 
             @if (_usuario == null)
