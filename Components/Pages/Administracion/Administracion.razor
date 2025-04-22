@@ -1,7 +1,134 @@
 ﻿@page "/administracion"
+@inject AdministracionService AdministracionService
+@using Services
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+@inject AuthService AuthService
 
-<MudText Typo="Typo.h4" Class="mb-4">Gestión de Usuarios</MudText>
+@using MudBlazor
+
+<style>
+    .fondo-difuminado {
+        backdrop-filter: blur(10px);
+    }
+
+    .mud-table tbody .mud-table-row:hover {
+        background-color: rgba(217, 4, 41, 0.10) !important;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-4 text-center">
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="font-size: 3rem; margin-right: 0.5rem;" />
+        <MudText Typo="Typo.h2"
+                 Class="font-weight-bold"
+                 Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
+            Administración
+        </MudText>
+    </div>
+    <MudDivider Class="mt-2 mx-auto" Style="height: 3px; background-color: #D90429; width: 160px;" />
+</MudContainer>
+
+@if (usuarios == null)
+{
+    <MudItem xs="12" Class="d-flex justify-center">
+        <MudProgressCircular Indeterminate="true" Style="height:70px;width:70px;" />
+    </MudItem>
+}
+else if (usuarios.Count == 0)
+{
+    <MudText>No hay usuarios registrados.</MudText>
+}
+else
+{
+    <MudPaper Elevation="4" Class="pa-4 mb-4" Style="margin-inline: 5%; border-radius: 12px;">
+        <MudTable Items="usuarios" Dense="true" Striped="true" Hover="true" Outlined="true">
+            <HeaderContent>
+                <MudTh>Nombre</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Teléfono</MudTh>
+                <MudTh>Altura</MudTh>
+                <MudTh>Peso</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @if(@context.Email != "Admin@admin.com")
+                {
+                <MudTd>@context.Nombre @context.Apellido1 @context.Apellido2</MudTd>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>@context.Telefono</MudTd>
+                <MudTd>@context.Altura cm</MudTd>
+                <MudTd>@context.Peso kg</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   OnClick="() => MostrarConfirmacionEliminar(context.Id, context.Nombre)"
+                                   AriaLabel="Eliminar usuario"
+                                   Size="Size.Medium" />
+                </MudTd>
+                }
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
 
 @code {
+    private List<Usuario>? usuarios;
+    private bool _primeraCarga = true;
+    private Usuario? usuario;
 
+    protected override async Task OnInitializedAsync()
+    {
+        usuarios = await AdministracionService.GetUsuariosAsync();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _primeraCarga)
+        {
+            _primeraCarga = false;
+
+            usuario = await AuthService.GetCurrentUserAsync();
+            if (usuario == null || usuario?.Email != "Admin@admin.com")
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+        }
+    }
+
+    private async Task EliminarUsuario(int id)
+    {
+        bool eliminado = await AdministracionService.EliminarUsuarioAsync(id);
+        if (eliminado)
+        {
+            usuarios = await AdministracionService.GetUsuariosAsync();
+            Snackbar.Add("Usuario eliminado correctamente.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Error al eliminar el usuario.", Severity.Error);
+        }
+
+        StateHasChanged();
+    }
+    private async Task MostrarConfirmacionEliminar(int id, string nombre)
+    {
+        bool? confirmacion = await DialogService.ShowMessageBox(
+            title: "Confirmar eliminación",
+            markupMessage: (MarkupString)$"<b>¿Estás seguro que deseas eliminar al usuario \"{nombre}\"?</b>",
+            yesText: "Eliminar",
+            noText: "Cancelar",
+            options: new DialogOptions
+                {
+                    MaxWidth = MaxWidth.Small,
+                    CloseButton = true,
+                    FullWidth = true
+                });
+
+        if (confirmacion == true)
+        {
+            await EliminarUsuario(id);
+        }
+    }
 }
