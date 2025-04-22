@@ -16,7 +16,7 @@
         backdrop-filter: blur(10px);
     }
 
-    .mud-table-row:hover {
+    .mud-table tbody .mud-table-row:hover {
         background-color: rgba(217, 4, 41, 0.10) !important;
     }
 </style>
@@ -51,7 +51,7 @@ else
                     <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Class="mr-2" /> @dia.Value
                 </MudText>
 
-                <MudTable Items="@ejerciciosDelDia" Dense="true" Hover="true" Bordered="false" Class="mud-elevation-1" Striped="true" Outlined="true">
+                <MudTable Items="@ejerciciosDelDia" Dense="true" Bordered="false" Class="mud-elevation-1" Striped="true" Outlined="true">
                     <HeaderContent>
                         <MudTh>Nombre</MudTh>
                         <MudTh>Parte del Cuerpo</MudTh>
