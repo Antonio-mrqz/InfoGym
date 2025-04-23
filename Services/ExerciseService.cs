@@ -46,6 +46,88 @@ namespace MudBlazorWebApp1.Services
                 return new List<Exercise>();
             }
         }
+        public async Task<List<string>> GetBodyPartList()
+        {
+            try
+            {
+
+                int limit = 0;
+                var response = await _httpClient.GetAsync($"exercises/bodyPartList?limit={limit}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new List<string>();
+                }
+
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var bodyPartList = JsonSerializer.Deserialize<List<string>>(jsonContent, options);
+                return bodyPartList ?? new List<string>();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
+        }
+        public async Task<List<string>> GetEquipmentList()
+        {
+            try
+            {
+
+                int limit = 0;
+                var response = await _httpClient.GetAsync($"exercises/equipmentList?limit={limit}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new List<string>();
+                }
+
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var equipmentList = JsonSerializer.Deserialize<List<string>>(jsonContent, options);
+                return equipmentList ?? new List<string>();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
+        }
+
+        public async Task<List<string>> GetTargetList()
+        {
+            try
+            {
+
+                int limit = 0;
+                var response = await _httpClient.GetAsync($"exercises/targetList?limit={limit}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new List<string>();
+                }
+
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var targetList = JsonSerializer.Deserialize<List<string>>(jsonContent, options);
+                return targetList ?? new List<string>();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
+        }
         public async Task<Exercise> GetExerciseByIdAsync(string id)
         {
             try

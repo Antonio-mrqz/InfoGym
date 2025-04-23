@@ -25,7 +25,7 @@
     }
 
     .mud-pagination-item {
-        list-style: none !important;
+    list-style: none !important;
     }
 </style>
 
@@ -34,8 +34,8 @@
     <div style="display: flex; align-items: center; justify-content: center;">
         <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; margin-right: 0.5rem;" />
         <MudText Typo="Typo.h2"
-                 Class="font-weight-bold"
-                 Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
+        Class="font-weight-bold"
+        Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
             Ejercicios
         </MudText>
     </div>
@@ -45,6 +45,56 @@
 
 @* CONTENIDO *@
 <MudContainer Class="mt-16">
+
+    <MudItem xs="12" class="mb-4 d-flex align-center flex-wrap gap-4">
+        <MudTextField @bind-Value="searchTextTemp"
+                      Label="Nombre"
+                      Variant="Variant.Filled"
+                      Dense="true"
+                      Style="min-width: 250px;" />
+
+        <MudSelect T="string" Label="Parte del cuerpo"
+                   @bind-Value="selectedBodyPartTemp"
+                   Dense="true" Variant="Variant.Filled"
+                   Style="min-width: 250px;" Clearable="true">
+            @if (bodyPartList != null)
+            {
+                @foreach (var part in bodyPartList)
+                {
+                    <MudSelectItem Value="@part">@part</MudSelectItem>
+                }
+            }
+        </MudSelect>
+        <MudSelect T="string" Label="Músculo Objetivo"
+                   @bind-Value="selectedTargetTemp"
+                   Dense="true" Variant="Variant.Filled"
+                   Style="min-width: 250px;" Clearable="true">
+            @if (targetList != null)
+            {
+                @foreach (var musculo in targetList)
+                {
+                    <MudSelectItem Value="@musculo">@musculo</MudSelectItem>
+                }
+            }
+        </MudSelect>
+
+        <MudSelect T="string" Label="Equipamiento Necesario"
+                   @bind-Value="selectedEquipmentTemp"
+                   Dense="true" Variant="Variant.Filled"
+                   Style="min-width: 250px;" Clearable="true">
+            @if (equipmentList != null)
+            {
+                @foreach (var eq in equipmentList)
+                {
+                    <MudSelectItem Value="@eq">@eq</MudSelectItem>
+                }
+            }
+        </MudSelect>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AplicarFiltro">
+            Filtrar
+        </MudButton>
+    </MudItem>
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
@@ -61,11 +111,13 @@
         else if (pagedExercises == null || !pagedExercises.Any())
         {
             <MudItem xs="12">
-                <MudAlert Severity="Severity.Info">No se encontraron ejercicios. Por favor verifica la conexión a la API.</MudAlert>
+                <MudAlert Severity="Severity.Info">No se encontraron ejercicios con esas especificaciones.</MudAlert>
             </MudItem>
         }
         else
         {
+
+            // Ejercicios
             @foreach (var exercise in pagedExercises)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
@@ -90,13 +142,14 @@
         }
     </MudGrid>
     <!-- Paginación -->
-    @if (!isLoading)
+    @if (!isLoading && pagedExercises != null && pagedExercises.Any())
     {
         <MudPagination ShowFirstButton="true" ShowLastButton="true"
-                       Count="totalPages"
-                       Selected="@currentPage"
-                       SelectedChanged="ChangePage"
-                       Class="mt-4 d-flex justify-center" />
+        Count="totalPages"
+        Selected="@currentPage"
+        SelectedChanged="ChangePage"
+        Class="mt-4 d-flex justify-center"
+        Style="margin-bottom:10px"/>
     }
 
 </MudContainer>
@@ -111,7 +164,30 @@
 
     private int currentPage = 1;
     private int itemsPerPage = 8; // Número de ejercicios por página
-    private int totalPages => (exercises?.Count ?? 0 + itemsPerPage - 1) / itemsPerPage;
+    private IEnumerable<Exercise> filteredExercises =>
+        (exercises ?? Enumerable.Empty<Exercise>())
+            .Where(e =>
+                (string.IsNullOrWhiteSpace(selectedBodyPart) || e.BodyPart.Equals(selectedBodyPart, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(selectedEquipment) || e.Equipment.Equals(selectedEquipment, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(selectedTarget) || e.Target.Equals(selectedTarget, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(searchText) ||
+                 e.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
+    private int totalPages => (filteredExercises.Count() + itemsPerPage - 1) / itemsPerPage;
+
+    private List<string>? bodyPartList;
+    private string? selectedBodyPartTemp;
+    private string? selectedBodyPart;
+
+    private List<string>? targetList;
+    private string? selectedTargetTemp;
+    private string? selectedTarget;
+
+    private List<string>? equipmentList;
+    private string? selectedEquipmentTemp;
+    private string? selectedEquipment;
+
+    private string? searchTextTemp;
+    private string? searchText;
 
     [Inject] private NavigationManager Navigation { get; set; }
 
@@ -128,6 +204,9 @@
         {
             isLoading = true;
             exercises = await ExerciseService.GetExercisesAsync();
+            bodyPartList = await ExerciseService.GetBodyPartList();
+            equipmentList = await ExerciseService.GetEquipmentList();
+            targetList = await ExerciseService.GetTargetList();
 
             if (exercises == null || !exercises.Any())
             {
@@ -157,8 +236,15 @@
     private void UpdatePagedExercises()
     {
         if (exercises == null) return;
+
         int startIndex = (currentPage - 1) * itemsPerPage;
-        pagedExercises = exercises.Skip(startIndex).Take(itemsPerPage).ToList();
+        pagedExercises = filteredExercises.Skip(startIndex).Take(itemsPerPage).ToList();
+
+    }
+    private void OnFilterChanged(string? value)
+    {
+        currentPage = 1;
+        UpdatePagedExercises();
     }
     private async Task OpenExerciseDialog(Exercise exercise)
     {
@@ -176,4 +262,14 @@
 
         DialogService.Show<ExerciseInstructionsDialog>("Instrucciones del ejercicio", parameters, options);
     }
+    private void AplicarFiltro()
+    {
+        selectedBodyPart = selectedBodyPartTemp;
+        selectedTarget = selectedTargetTemp;
+        selectedEquipment = selectedEquipmentTemp;
+        searchText = searchTextTemp;
+        currentPage = 1;
+        UpdatePagedExercises();
+    }
+
 }

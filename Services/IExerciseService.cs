@@ -8,5 +8,8 @@ namespace MudBlazorWebApp1.Services
         Task<Exercise> GetExerciseByIdAsync(string id);
         Task<List<Exercise>> GetExercisesByBodyPartAsync(string bodyPart);
         Task<bool> TestConnectionAsync();
+        Task<List<string>> GetBodyPartList();
+        Task<List<string>> GetEquipmentList();
+        Task<List<string>> GetTargetList();
     }
 }
