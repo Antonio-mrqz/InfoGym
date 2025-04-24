@@ -22,6 +22,13 @@
                 Rutina
             </div>
         </MudNavLink>
+
+        <MudNavLink Href="/foro" Match="NavLinkMatch.Prefix">
+            <div style="display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 18px;">
+                <MudIcon Icon="@Icons.Material.Filled.Forum" />
+                Foro
+            </div>
+        </MudNavLink>
     }
     @if (Usuario?.Email == "Admin@admin.com")
     {

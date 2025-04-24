@@ -1,0 +1,105 @@
+﻿@namespace MudBlazorWebApp1.Pages
+@using MudBlazorWebApp1.Models
+@using MudBlazor
+@using Services
+@using System.ComponentModel.DataAnnotations
+@inject UserService UserService
+@inject RutinaService RutinaService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudPaper Class="pa-4" Style="border-radius: 16px; background-color: #121212;">
+            <MudText Typo="Typo.h6" Class="mb-4 font-weight-bold">Editar Usuario</MudText>
+
+            <MudForm @ref="_form" Model="usuarioEditado">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="Nombre" @bind-Value="usuarioEditado.Nombre" Required="true"
+                                      RequiredError="El nombre es obligatorio." />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="Primer Apellido" @bind-Value="usuarioEditado.Apellido1" Required="true"
+                                      RequiredError="El primer apellido es obligatorio." />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="Segundo Apellido" @bind-Value="usuarioEditado.Apellido2" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="Email"
+                                      @bind-Value="usuarioEditado.Email"
+                                      Required="true" RequiredError="El email es obligatorio."
+                                      Validation="@( (string e) => string.IsNullOrWhiteSpace(e) || !new EmailAddressAttribute().IsValid(e) ? "Email no válido" : null )" />
+
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int" Label="Teléfono"
+                                         @bind-Value="usuarioEditado.Telefono"
+                                         Required="true"
+                                         RequiredError="El teléfono es obligatorio."
+                                         ErrorText="Debe tener 9 dígitos"
+                                         Min="100000000" Max="999999999" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int" Label="Altura (cm)" @bind-Value="usuarioEditado.Altura"
+                                         Required="true" Min="50" Max="250"
+                                         RequiredError="La altura es obligatoria."
+                                         ErrorText="Debe estar entre 50 y 250 cm." />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="double" Label="Peso (kg)" @bind-Value="usuarioEditado.Peso"
+                                         Required="true" Min="20" Max="300"
+                                         RequiredError="El peso es obligatorio."
+                                         ErrorText="Debe estar entre 20 y 300 kg." />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudPaper>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancelar" Color="Color.Secondary" Variant="Variant.Outlined">Cancelar</MudButton>
+        <MudButton OnClick="Guardar" Color="Color.Primary" Variant="Variant.Filled">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Usuario Usuario { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    private Usuario usuarioEditado = new();
+    private MudForm? _form;
+
+    protected override void OnInitialized()
+    {
+        usuarioEditado = new Usuario
+            {
+                Id = Usuario.Id,
+                Nombre = Usuario.Nombre,
+                Apellido1 = Usuario.Apellido1,
+                Apellido2 = Usuario.Apellido2,
+                Email = Usuario.Email,
+                Telefono = Usuario.Telefono,
+                Altura = Usuario.Altura,
+                Peso = Usuario.Peso
+            };
+    }
+
+    private void Cancelar() => MudDialog.Cancel();
+
+    private async Task Guardar()
+    {
+        await _form?.Validate();
+        if (_form?.IsValid == true)
+        {
+            bool actualizado = await UserService.ActualizarUsuario(usuarioEditado);
+            if (actualizado)
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add("No se pudo actualizar el usuario.", Severity.Error);
+            }
+        }
+    }
+}

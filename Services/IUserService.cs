@@ -7,6 +7,6 @@ namespace MudBlazorWebApp1.Services
         Task<List<Usuario>> GetUsuariosAsync();
         Task<bool> EliminarUsuarioAsync(int id);
         Task<Usuario?> GetUsuarioPorIdAsync(int id);
-        Task<bool> ActualizarUsuarioAsync(Usuario usuario);
+        Task<bool> ActualizarUsuario(Usuario usuario);
     }
 }

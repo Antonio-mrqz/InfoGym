@@ -1,6 +1,8 @@
 ﻿@page "/administracion"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Pages
 @inject AdministracionService AdministracionService
-@using Services
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
@@ -9,8 +11,9 @@
 @using MudBlazor
 
 <style>
-    .fondo-difuminado {
-        backdrop-filter: blur(10px);
+    .dialog-overlay-blur {
+        backdrop-filter: blur(8px);
+        background-color: rgba(0, 0, 0, 0.3) !important;
     }
 
     .mud-table tbody .mud-table-row:hover {
@@ -62,9 +65,14 @@ else
                 <MudTd>@context.Peso kg</MudTd>
                 <MudTd>
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   Color="Color.Error"
+                                   Color="Color.Primary"
                                    OnClick="() => MostrarConfirmacionEliminar(context.Id, context.Nombre)"
                                    AriaLabel="Eliminar usuario"
+                                   Size="Size.Medium" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Info"
+                                   OnClick="() => AbrirDialogoEditarUsuario(context)"
+                                   AriaLabel="Editar usuario"
                                    Size="Size.Medium" />
                 </MudTd>
                 }
@@ -123,12 +131,30 @@ else
                 {
                     MaxWidth = MaxWidth.Small,
                     CloseButton = true,
-                    FullWidth = true
+                    FullWidth = true,
+                    BackgroundClass = "dialog-overlay-blur"
                 });
 
         if (confirmacion == true)
         {
             await EliminarUsuario(id);
+        }
+    }
+
+    private async Task AbrirDialogoEditarUsuario(Usuario usuarioSeleccionado)
+    {
+        var parameters = new DialogParameters { ["Usuario"] = usuarioSeleccionado };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = DialogService.Show<EditarUsuarioDialog>("Editar Usuario", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            usuarios = await AdministracionService.GetUsuariosAsync();
+            Snackbar.Add("Usuario actualizado correctamente.", Severity.Success);
+            StateHasChanged();
         }
     }
 }
