@@ -3,7 +3,7 @@
 @using MudBlazor
 @using Services
 @using System.ComponentModel.DataAnnotations
-@inject UserService UserService
+@inject AdministracionService AdministracionService
 @inject RutinaService RutinaService
 @inject ISnackbar Snackbar
 
@@ -46,12 +46,6 @@
                                          RequiredError="La altura es obligatoria."
                                          ErrorText="Debe estar entre 50 y 250 cm." />
                     </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField T="double" Label="Peso (kg)" @bind-Value="usuarioEditado.Peso"
-                                         Required="true" Min="20" Max="300"
-                                         RequiredError="El peso es obligatorio."
-                                         ErrorText="Debe estar entre 20 y 300 kg." />
-                    </MudItem>
                 </MudGrid>
             </MudForm>
         </MudPaper>
@@ -80,7 +74,6 @@
                 Email = Usuario.Email,
                 Telefono = Usuario.Telefono,
                 Altura = Usuario.Altura,
-                Peso = Usuario.Peso
             };
     }
 
@@ -91,7 +84,7 @@
         await _form?.Validate();
         if (_form?.IsValid == true)
         {
-            bool actualizado = await UserService.ActualizarUsuario(usuarioEditado);
+            bool actualizado = await AdministracionService.ActualizarUsuario(usuarioEditado);
             if (actualizado)
             {
                 MudDialog.Close(DialogResult.Ok(true));

@@ -36,6 +36,7 @@ public class AdministracionService
                     Telefono = reader.IsDBNull("Telefono") ? 0 : reader.GetInt32("Telefono"),
                     Altura = reader.IsDBNull("Altura") ? 0 : reader.GetInt32("Altura"),
                     Peso = reader.IsDBNull("Peso") ? 0.0 : reader.GetDouble("Peso"),
+                    FotoBase64 = reader.IsDBNull("FotoBase64") ? string.Empty : reader.GetString("FotoBase64"),
                 }
             ;
                 usuarios.Add(usuario);
@@ -83,6 +84,44 @@ public class AdministracionService
         catch (Exception ex)
         {
             Console.WriteLine("Error al eliminar usuario: " + ex.Message);
+            return false;
+        }
+        finally
+        {
+            await _connection.CloseAsync();
+        }
+    }
+
+    public async Task<bool> ActualizarUsuario(Usuario usuario)
+    {
+        try
+        {
+            await _connection.OpenAsync();
+
+            var cmd = new MySqlCommand(@"
+            UPDATE Users SET
+                Nombre = @Nombre,
+                Apellido1 = @Apellido1,
+                Apellido2 = @Apellido2,
+                Email = @Email,
+                Telefono = @Telefono,
+                Altura = @Altura
+            WHERE Id = @Id", _connection);
+
+            cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
+            cmd.Parameters.AddWithValue("@Apellido1", usuario.Apellido1 ?? "");
+            cmd.Parameters.AddWithValue("@Apellido2", usuario.Apellido2 ?? "");
+            cmd.Parameters.AddWithValue("@Email", usuario.Email);
+            cmd.Parameters.AddWithValue("@Telefono", usuario.Telefono);
+            cmd.Parameters.AddWithValue("@Altura", usuario.Altura);
+            cmd.Parameters.AddWithValue("@Id", usuario.Id);
+
+            int filasAfectadas = await cmd.ExecuteNonQueryAsync();
+            return filasAfectadas > 0;
+        }
+        catch (Exception ex)
+        {
+            // Puedes loguear ex.Message si lo necesitas
             return false;
         }
         finally

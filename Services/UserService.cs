@@ -65,7 +65,8 @@ namespace MudBlazorWebApp1.Services
                 Email = @Email,
                 Telefono = @Telefono,
                 Altura = @Altura,
-                Peso = @Peso
+                Peso = @Peso,
+                FotoBase64 = @Foto
             WHERE Id = @Id", _connection);
 
                 cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
@@ -75,6 +76,7 @@ namespace MudBlazorWebApp1.Services
                 cmd.Parameters.AddWithValue("@Telefono", usuario.Telefono);
                 cmd.Parameters.AddWithValue("@Altura", usuario.Altura);
                 cmd.Parameters.AddWithValue("@Peso", usuario.Peso);
+                cmd.Parameters.AddWithValue("@Foto", usuario.FotoBase64);
                 cmd.Parameters.AddWithValue("@Id", usuario.Id);
 
                 int filasAfectadas = await cmd.ExecuteNonQueryAsync();
