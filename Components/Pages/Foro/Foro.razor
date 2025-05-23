@@ -1,4 +1,5 @@
 ﻿@page "/foro"
+@inject Services.ForoService ForoService
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-4 text-center">
     <div style="display: flex; align-items: center; justify-content: center;">
@@ -12,6 +13,44 @@
     <MudDivider Class="mt-2 mx-auto" Style="height: 3px; background-color: #D90429; width: 100px;" />
 </MudContainer>
 
-@code {
+<MudContainer MaxWidth="MaxWidth.Large">
+    @if (comentarios.Count == 0)
+    {
+        <MudText>No hay comentarios todavía.</MudText>
+    }
+    else
+    {
+        @foreach (var comentario in comentarios)
+        {
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudAvatar Color="Color.Secondary">@comentario.NombreUsuario.FirstOrDefault()</MudAvatar>
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.body1">@comentario.NombreUsuario</MudText>
+                        <MudText Typo="Typo.body2">@comentario.Titulo</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
 
+                <MudCardContent>
+                    <MudText Typo="Typo.body2">@comentario.Texto</MudText>
+                </MudCardContent>
+
+                <MudCardActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+                </MudCardActions>
+            </MudCard>
+        }
+    }
+</MudContainer>
+
+@code {
+    private List<Comentario> comentarios = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        comentarios = await ForoService.GetComentarios();
+    }
 }

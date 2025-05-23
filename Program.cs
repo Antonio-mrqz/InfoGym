@@ -29,6 +29,7 @@ builder.Services.AddScoped<PesoService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RutinaService>();
 builder.Services.AddScoped<AdministracionService>();
+builder.Services.AddScoped<ForoService>();
 // Configura la conexión MySQL de manera correcta
 builder.Services.AddScoped<MySqlConnection>(sp =>
 {
