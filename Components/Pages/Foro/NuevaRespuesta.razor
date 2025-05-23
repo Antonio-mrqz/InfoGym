@@ -1,0 +1,43 @@
+﻿@namespace MudBlazorWebApp1.Pages
+@using Services
+@inject ForoService ForoService
+@inject AuthService AuthService
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="texto"
+                      Label="Escribe tu respuesta"
+                      Variant="Variant.Outlined"
+                      FullWidth="true"
+                      Lines="4"
+                      TextArea="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Publicar">Publicar</MudButton>
+        <MudButton OnClick="MudDialog.Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int ComentarioPadreId { get; set; }
+
+    private string texto = "";
+    private Usuario? usuario;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuario = await AuthService.GetCurrentUserAsync();
+    }
+
+    private async Task Publicar()
+    {
+        if (usuario is null || string.IsNullOrWhiteSpace(texto)) return;
+
+        var exito = await ForoService.AgregarComentarioAsync(usuario.Id, "(sin título)", texto, ComentarioPadreId);
+        if (exito)
+            MudDialog.Close(DialogResult.Ok(true));
+        else
+            MudDialog.Close(DialogResult.Cancel());
+    }
+}

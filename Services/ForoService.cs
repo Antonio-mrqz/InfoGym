@@ -178,6 +178,33 @@ namespace MudBlazorWebApp1.Services
 
             return lista;
         }
+        public async Task<bool> BorrarComentario2Async(int comentarioId)
+        {
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand(@"
+            DELETE FROM comentariosforo
+            WHERE id = @ComentarioId
+        ", _connection);
+
+                cmd.Parameters.AddWithValue("@ComentarioId", comentarioId);
+
+                int filasAfectadas = await cmd.ExecuteNonQueryAsync();
+                return filasAfectadas > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al borrar comentario: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                if (_connection.State == System.Data.ConnectionState.Open)
+                    await _connection.CloseAsync();
+            }
+        }
 
 
 

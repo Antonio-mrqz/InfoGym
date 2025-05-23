@@ -52,7 +52,7 @@ else
                             <MudText Typo="Typo.body2">@comentario.Titulo</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            @if (usuario?.Id == comentario.IdUsuario)
+                            @if (usuario?.Id == comentario.IdUsuario || usuario?.Email == "Admin@admin.com")
                             {
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                Color="Color.Error"
@@ -85,10 +85,6 @@ else
     private bool _initialized;
     private List<Comentario> comentarios = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        comentarios = await ForoService.GetComentarios();
-    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!_initialized)

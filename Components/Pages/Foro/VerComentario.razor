@@ -3,7 +3,10 @@
 @using MudBlazorWebApp1.Services
 @using MudBlazorWebApp1.Pages
 @inject Services.ForoService ForoService
+@inject Services.AuthService AuthService
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     @if (comentario == null)
@@ -12,6 +15,11 @@
     }
     else
     {
+        <MudFab StartIcon="@Icons.Material.Filled.AddCircleOutline"
+                Color="Color.Primary"
+                Style="position: fixed; bottom: 20px; right: 20px;"
+                OnClick="AbrirDialogoResponderComentario">
+        </MudFab>
         <!-- Comentario principal en grande -->
         <MudCard Class="mb-4" Style="border: 2px solid #D90429;">
             <MudCardHeader>
@@ -46,6 +54,14 @@
                         <CardHeaderContent>
                             <MudText Typo="Typo.body1">@r.NombreUsuario</MudText>
                         </CardHeaderContent>
+                        <CardHeaderActions>
+                            @if (usuario?.Id == r.IdUsuario || usuario?.Email == "Admin@admin.com")
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="@(() => BorrarComentario(r.Id))" />
+                            }
+                        </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
                         <MudText>@r.Texto</MudText>
@@ -58,13 +74,57 @@
 
 @code {
     [Parameter] public int Id { get; set; }
+    private Usuario? usuario;
+    private bool _initialized;
 
     private Comentario? comentario;
     private List<Comentario> respuestas = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        comentario = await ForoService.GetComentarioPorIdAsync(Id);
-        respuestas = await ForoService.GetRespuestasAsync(Id);
+        if (!_initialized)
+        {
+            _initialized = true;
+
+            usuario = await AuthService.GetCurrentUserAsync();
+            if (usuario == null)
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            comentario = await ForoService.GetComentarioPorIdAsync(Id);
+            respuestas = await ForoService.GetRespuestasAsync(Id);
+
+            StateHasChanged();
+        }
     }
+    private async Task BorrarComentario(int id)
+    {
+
+        bool eliminado = await ForoService.BorrarComentario2Async(id);
+        if (eliminado)
+        {
+            Snackbar.Add("Comentario Eliminado Correctamente", Severity.Success);
+            respuestas = await ForoService.GetRespuestasAsync(Id);
+            StateHasChanged();
+        }
+    }
+
+    private async Task AbrirDialogoResponderComentario()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters { ["ComentarioPadreId"] = Id };
+
+        var dialog = DialogService.Show<NuevaRespuesta>("Responder Comentario", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Snackbar.Add("Respuesta publicada correctamente", Severity.Success);
+            respuestas = await ForoService.GetRespuestasAsync(Id);
+            StateHasChanged();
+        }
+    }
+
 }
