@@ -1,0 +1,70 @@
+﻿@page "/comentario/{Id:int}"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Pages
+@inject Services.ForoService ForoService
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (comentario == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <!-- Comentario principal en grande -->
+        <MudCard Class="mb-4" Style="border: 2px solid #D90429;">
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudAvatar Color="Color.Secondary">@comentario.NombreUsuario.FirstOrDefault()</MudAvatar>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">@comentario.NombreUsuario</MudText>
+                    <MudText Typo="Typo.subtitle2">@comentario.Titulo</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body1">@comentario.Texto</MudText>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Respuestas -->
+        <MudText Typo="Typo.h6">Respuestas</MudText>
+        @if (respuestas.Count == 0)
+        {
+            <MudText>No hay respuestas todavía.</MudText>
+        }
+        else
+        {
+            @foreach (var r in respuestas)
+            {
+                <MudCard Class="mb-2">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar Color="Color.Info">@r.NombreUsuario.FirstOrDefault()</MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.body1">@r.NombreUsuario</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>@r.Texto</MudText>
+                    </MudCardContent>
+                </MudCard>
+            }
+        }
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Comentario? comentario;
+    private List<Comentario> respuestas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        comentario = await ForoService.GetComentarioPorIdAsync(Id);
+        respuestas = await ForoService.GetRespuestasAsync(Id);
+    }
+}

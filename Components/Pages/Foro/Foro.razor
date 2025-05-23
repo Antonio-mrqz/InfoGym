@@ -1,56 +1,141 @@
 ﻿@page "/foro"
+@using MudBlazorWebApp1.Models
+@using MudBlazorWebApp1.Services
+@using MudBlazorWebApp1.Pages
 @inject Services.ForoService ForoService
+@inject Services.AuthService AuthService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-4 text-center">
     <div style="display: flex; align-items: center; justify-content: center;">
         <MudIcon Icon="@Icons.Material.Filled.Forum" Style="font-size: 3rem; margin-right: 0.5rem;" />
         <MudText Typo="Typo.h2"
-                 Class="font-weight-bold"
-                 Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
+        Class="font-weight-bold"
+        Style="display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 3rem;">
             Foro
         </MudText>
     </div>
     <MudDivider Class="mt-2 mx-auto" Style="height: 3px; background-color: #D90429; width: 100px;" />
 </MudContainer>
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    @if (comentarios.Count == 0)
-    {
-        <MudText>No hay comentarios todavía.</MudText>
-    }
-    else
-    {
-        @foreach (var comentario in comentarios)
+@if (usuario == null || comentarios == null)
+{
+    <MudItem xs="12" Class="d-flex justify-center">
+        <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    </MudItem>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudFab StartIcon="@Icons.Material.Filled.AddCircleOutline"
+                Color="Color.Primary"
+                Style="position: fixed; bottom: 20px; right: 20px;"
+                OnClick="AbrirDialogoNuevoComentario" >
+            </MudFab>
+        @if (comentarios.Count == 0)
         {
-            <MudCard Class="mb-4">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudAvatar Color="Color.Secondary">@comentario.NombreUsuario.FirstOrDefault()</MudAvatar>
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.body1">@comentario.NombreUsuario</MudText>
-                        <MudText Typo="Typo.body2">@comentario.Titulo</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-
-                <MudCardContent>
-                    <MudText Typo="Typo.body2">@comentario.Texto</MudText>
-                </MudCardContent>
-
-                <MudCardActions>
-                    <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
-                </MudCardActions>
-            </MudCard>
+            <MudText>No hay comentarios todavía.</MudText>
         }
-    }
-</MudContainer>
+        else
+        {
+            @foreach (var comentario in comentarios)
+            {
+                <MudCard Class="mb-4">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar Color="Color.Secondary">@comentario.NombreUsuario.FirstOrDefault()</MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.body1">@comentario.NombreUsuario</MudText>
+                            <MudText Typo="Typo.body2">@comentario.Titulo</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            @if (usuario?.Id == comentario.IdUsuario)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="@(() => BorrarComentario(comentario.Id))" />
+                            }
+                        </CardHeaderActions>
+      
+                    </MudCardHeader>
+
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">@comentario.Texto</MudText>
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <!-- Este se alinea a la derecha -->
+                        <MudIconButton Icon="@Icons.Material.Filled.Reply"
+                                       Color="Color.Primary"
+                                       Style="margin-left: auto;"
+                                       OnClick="@(() => ResponderComentario(comentario.Id))" />
+                    </MudCardActions>
+                </MudCard>
+
+            }
+        }
+    </MudContainer>
+}
 
 @code {
+    private Usuario? usuario;
+    private bool _initialized;
     private List<Comentario> comentarios = new();
 
     protected override async Task OnInitializedAsync()
     {
         comentarios = await ForoService.GetComentarios();
     }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_initialized)
+        {
+            _initialized = true;
+
+            usuario = await AuthService.GetCurrentUserAsync();
+            if (usuario == null)
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            comentarios = await ForoService.GetComentarios();
+
+            StateHasChanged();
+        }
+    }
+    private async Task AbrirDialogoNuevoComentario()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<NuevoComentarioDialog>("Nuevo Comentario", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // Recargar comentarios tras publicación
+            Snackbar.Add("Comentario Publicado Correctamente", Severity.Success);
+            comentarios = await ForoService.GetComentarios();
+            StateHasChanged();
+        }
+    }
+    private async Task BorrarComentario(int id)
+    {
+
+        bool eliminado = await ForoService.BorrarComentarioAsync(id);
+        if (eliminado)
+        {
+            Snackbar.Add("Comentario Eliminado Correctamente", Severity.Success);
+            comentarios = await ForoService.GetComentarios();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResponderComentario(int comentarioId)
+    {
+        Navigation.NavigateTo($"/comentario/{comentarioId}");
+    }
+
 }

@@ -86,6 +86,100 @@ namespace MudBlazorWebApp1.Services
 
             return lista;
         }
+        public async Task<bool> BorrarComentarioAsync(int comentarioId)
+        {
+            try
+            {
+                await _connection.OpenAsync();
+
+                var cmd = new MySqlCommand(@"
+            DELETE FROM comentariosforo
+            WHERE id = @ComentarioId OR respuestaA = @ComentarioId
+        ", _connection);
+
+                cmd.Parameters.AddWithValue("@ComentarioId", comentarioId);
+
+                int filasAfectadas = await cmd.ExecuteNonQueryAsync();
+                return filasAfectadas > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al borrar comentario: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                if (_connection.State == System.Data.ConnectionState.Open)
+                    await _connection.CloseAsync();
+            }
+        }
+        public async Task<Comentario?> GetComentarioPorIdAsync(int id)
+        {
+            try
+            {
+                await _connection.OpenAsync();
+                var cmd = new MySqlCommand(@"
+            SELECT c.*, u.Nombre AS nombreUsuario
+            FROM comentariosforo c
+            JOIN users u ON u.id = c.idUsuario
+            WHERE c.id = @Id
+        ", _connection);
+
+                cmd.Parameters.AddWithValue("@Id", id);
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                if (await reader.ReadAsync())
+                {
+                    return new Comentario
+                    {
+                        Id = reader.GetInt32("id"),
+                        IdUsuario = reader.GetInt32("idUsuario"),
+                        NombreUsuario = reader.GetString("nombreUsuario"),
+                        Titulo = reader.GetString("titulo"),
+                        Texto = reader.GetString("texto"),
+                        RespuestaA = reader.GetInt32("respuestaA")
+                    };
+                }
+            }
+            finally { await _connection.CloseAsync(); }
+
+            return null;
+        }
+
+        public async Task<List<Comentario>> GetRespuestasAsync(int comentarioId)
+        {
+            var lista = new List<Comentario>();
+            try
+            {
+                await _connection.OpenAsync();
+                var cmd = new MySqlCommand(@"
+            SELECT c.*, u.Nombre AS nombreUsuario
+            FROM comentariosforo c
+            JOIN users u ON u.id = c.idUsuario
+            WHERE respuestaA = @ComentarioId
+        ", _connection);
+                cmd.Parameters.AddWithValue("@ComentarioId", comentarioId);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    lista.Add(new Comentario
+                    {
+                        Id = reader.GetInt32("id"),
+                        IdUsuario = reader.GetInt32("idUsuario"),
+                        NombreUsuario = reader.GetString("nombreUsuario"),
+                        Titulo = reader.GetString("titulo"),
+                        Texto = reader.GetString("texto"),
+                        RespuestaA = reader.GetInt32("respuestaA")
+                    });
+                }
+            }
+            finally { await _connection.CloseAsync(); }
+
+            return lista;
+        }
+
+
 
     }
 }
